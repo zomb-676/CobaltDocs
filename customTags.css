@@ -1,0 +1,21 @@
+red {
+    color: red;
+    font-size: 20px;
+}
+
+red:hover {
+    color: black;
+    visibility: hidden;
+}
+
+option {
+    /*display: none;*/
+    display: inline;
+    color: rgba(0,0,0,0);
+    background-color: black;
+}
+
+option:hover{
+    display: inline;
+    color: white;
+}
