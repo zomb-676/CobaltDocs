@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/themes/vue.css">
     <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.css"> <!--mermaid-->
     <script src="//cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script> <!--mermaid-->
-<!--    <script src="//cdn.jsdelivr.net/npm/docsify-katex@latest/dist/docsify-katex.js"></script>&lt;!&ndash;kaTex&ndash;&gt;-->
+    <!--    <script src="//cdn.jsdelivr.net/npm/docsify-katex@latest/dist/docsify-katex.js"></script>&lt;!&ndash;kaTex&ndash;&gt;-->
 
     <title>Cobalt</title>
 </head>
@@ -18,13 +18,13 @@
 
 
     var num = 0;
-    mermaid.initialize({ startOnLoad: false });
+    mermaid.initialize({startOnLoad: false});
 
     window.$docsify = {
         name: "Cobalt",
         loadSidebar: true,
+        subMaxLevel: 5,
         smartypants: true,
-
         pagination: {
             previousText: '上一章节',
             nextText: '下一章节',
@@ -32,20 +32,19 @@
             crossChapterText: true,
         },
 
-        plugins:[
-            function (hook,vm){
-                hook.beforeEach(function (content){
+        plugins: [
+            function (hook, vm) {
+                hook.beforeEach(function (content) {
                     return "<link rel=\"stylesheet\" type=\"text/css\" href=\"customTags.css\">\n\n"
-                    + content
+                        + content
                 });
             },
-
 
 
         ],
         markdown: {
             renderer: {
-                code: function(code, lang) {
+                code: function (code, lang) {
                     if (lang === "mmd") {
                         return (
                             '<div class="mermaid">' + mermaid.render('mermaid-svg-' + num++, code) + "</div>"
@@ -55,8 +54,8 @@
                 }
             }
         },
-        'flexible-alerts':{
-            style : 'callout', //or flat
+        'flexible-alerts': {
+            style: 'callout', //or flat
             note: {
                 label: "note"
             },

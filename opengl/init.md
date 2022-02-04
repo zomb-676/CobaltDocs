@@ -2,6 +2,32 @@
 
 ---
 
+## 大致流程
+
+我们的目标是
+
+````mmd
+flowchart LR
+    绘制画面
+````
+
+但是在此之前我们要初始化opengl,在窗口关闭后要进行收尾
+
+````mmd
+flowchart LR
+    初始化opengl --> 绘制画面 --窗口关闭--> 收尾
+````
+
+画面每帧都有可能变化,所以我们要不断更新画面
+
+````mmd
+flowchart LR
+    初始化opengl --> 绘制画面 --窗口关闭--> 收尾
+    绘制画面 --> 绘制画面
+````
+
+## 初始化opengl
+
 调用`GLFW.glfwInit():boolean`  
 返回true为成功,false为失败 所以我们可以这样
 
@@ -44,31 +70,31 @@ val window = createWindow(900, 900, "rua")
 ![img.png](preparationImages/callFunByAddress.png)
 因为opengl只是规范!!真正的函数实现在显卡驱动内
 ![img.png](preparationImages/openglIsStandard.png)
-只能通过函数的地址来间接调用函数
-这里的capabilities具体可以在这里找到
+只能通过函数的地址来间接调用函数 这里的capabilities具体可以在这里找到
 ![img.png](preparationImages/openglCapabilities.png)
 
 ---
 
 调用`GLFW.glfwMakeContextCurrent(window)`  
-把Capabilities绑定到当前线程
-如果忘记保存之前的window handle  
+把Capabilities绑定到当前线程 如果忘记保存之前的window handle  
 可以调用GLFW.glfwGetCurrentContext()获取当前线程的window handle
 
 ---
 
-终于我们完成了所有的初始化工作
+## 收尾
+
 在我们正式开始渲染前,我们首先处理收尾工作
 
 调用`GLFW.glfwDestroyWindow(window)`  
-关闭窗口和它的上下文
-调用`GLFW.glfwTerminate()`  
+关闭窗口和它的上下文 调用`GLFW.glfwTerminate()`  
 终止GLFW库的剩余内容
 
 ---
-这一章已经很长了,为了不太扫兴我们先绘制点什么吧  
+
+## 初次绘制
 
 写下我们的绘制循环
+
 ````kotlin
 while(!GLFW.glfwWindowShouldClose(window)){
     //draw logic
@@ -78,6 +104,7 @@ while(!GLFW.glfwWindowShouldClose(window)){
 ````
 
 先绘制一个普普通通的三角形吧
+
 ````kotlin
 GL11.glBegin(GL11.GL_TRIANGLES)
 GL11.glVertex2f(0f, 0.5f)
@@ -85,8 +112,10 @@ GL11.glVertex2f(-0.5f, -0.5f)
 GL11.glVertex2f(0.5f, -0.5f)
 GL11.glEnd()
 ````
+
 ![img.png](preparationImages/SimpleWhiteTrinagle.png)  
-来点彩色  
+来点彩色
+
 ````kotlin
 GL11.glBegin(GL11.GL_TRIANGLES)
 GL11.glColor3f(1f, 0f, 0f)
@@ -97,5 +126,6 @@ GL11.glColor3f(0f, 0f, 1f)
 GL11.glVertex2f(0.5f, -0.5f)
 GL11.glEnd()
 ````
+
 ![img.png](preparationImages/ColorfulTraiangle.png)
 很好!
