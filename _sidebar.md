@@ -4,6 +4,6 @@
   - [kt简介](begin/kt.md)
 - opengl
   - [开端](opengl/preparation.md)
-  - [初始](opengl/init.md)
+  - [初试](opengl/init.md)
 
 - [style](style.md)

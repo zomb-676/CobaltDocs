@@ -2,6 +2,7 @@
 ---
 
 Cobalt是一套Minecraft的渲染相关的说明文档
+项目仓库[地址](https://github.com/zomb-676/Cobalt)
 
 >[!attention]
 >黑幕内的内容带有强烈的个人观点,请选择观看  
