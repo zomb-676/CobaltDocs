@@ -5,16 +5,16 @@
 
 好的,让我们开始吧
 
-1. `throw`于`throws`有何区别?
+1. `throw`和`throws`有何区别?
 
-> throw表示抛出异常,出现于代码块中  
-> throws表示声明函数会抛出的checked异常
+> throw用于抛出异常,出现于代码块中  
+> throws用于声明函数会抛出的checked异常
 
 2. Daemon Thread的Daemon指什么
 
 > 即守护线程(后台线程),进程的终止不需要Daemon Thread运行结束
 
-3. Thread下是start还是run会启动一个新的线程
+3. Thread类下,start还是run用于启动一个新的线程
 
 > start
 
@@ -31,7 +31,7 @@ Thread Thread = new Thread(new Runnable(){
 
 > var Thread = new Thread(() -> {});
 
-5. XXX::new 与 new XXX()区别在何处
+5. XXX::new 与 new XXX()有何区别
 
 > XXX::new代表任意构造函数  
 > 可能为Supplier<XXX>,Function<A,XXX>,BiFunction<A,B,XXX>或其他
@@ -43,7 +43,7 @@ Thread Thread = new Thread(new Runnable(){
 
 ````javas
 public int FunA(int parameter);
-public int FunB(int parameter);
+public long FunB(int parameter);
 ````
 
 > 不可,java在语法层面并不允许返回值重载
@@ -55,7 +55,7 @@ public String FunA(List<Int> parameter);
 public String FunB(List<Boolean> parameter);
 ````
 
-> 不可,在valhalla落地前,java的泛型会被擦除,例中会被擦除为(Ljava/util/List;)Ljava/lang/String;  
+> 不可,在valhalla落地前,java的泛型会被擦除,例中两者都会被擦除为(Ljava/util/List;)Ljava/lang/String;  
 > 且前者的泛型参数Int为原始类型,不可作为   
 > 泛型参数,若使用应用其包装类Integer
 

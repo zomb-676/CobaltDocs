@@ -29,7 +29,7 @@
 
 
 > [!note]
-> 所有上述除learn opengl cn都为英文
+> 所有上述除learn opengl cn都为英文  
 > 所有上述都为cpp编写
 
 ## 依赖项目
@@ -55,5 +55,4 @@ https://github.com/SpaiR/imgui-java
 
 ### Kotlin协程库
 
-[Maven中心仓库](https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-core
-)
+[Maven中心仓库](https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-core)

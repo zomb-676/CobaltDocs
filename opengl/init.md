@@ -50,6 +50,15 @@ fun init() {
 `MemoryUtil.NULL`查定义可知就是0L,只不过这样可读性更高,在kt也不会报错
 ![img.png](preparationImages/glfwCreateWindowComment.png)
 
+封装一下
+
+````kotlin
+fun createWindow(width: Int, height: Int, title: String): Long =
+    GLFW.glfwCreateWindow(width, height, title, MemoryUtil.NULL, MemoryUtil.NULL)
+````
+
+调用
+
 ````kotlin
 val window = createWindow(900, 900, "rua")
 ````
@@ -65,10 +74,10 @@ val window = createWindow(900, 900, "rua")
 调用`GL.createCapabilities()`  
 具体是在获取我们需要用到的opengl函数的实际地址
 ![img.png](preparationImages/createCapabilities.png)
-![img.png](preparationImages/retrieveFunAddress.png)
+![img.png](preparationImages/retrieveFunAddress.png)  
 然后通过获取的函数的地址来调用真正的函数
 ![img.png](preparationImages/callFunByAddress.png)
-因为opengl只是规范!!真正的函数实现在显卡驱动内
+**因为opengl只是规范!!真正的函数实现在显卡驱动内**
 ![img.png](preparationImages/openglIsStandard.png)
 只能通过函数的地址来间接调用函数 这里的capabilities具体可以在这里找到
 ![img.png](preparationImages/openglCapabilities.png)
@@ -79,6 +88,10 @@ val window = createWindow(900, 900, "rua")
 把Capabilities绑定到当前线程 如果忘记保存之前的window handle  
 可以调用GLFW.glfwGetCurrentContext()获取当前线程的window handle
 
+````kotlin
+GLFW.glfwMakeContextCurrent(window)
+````
+
 ---
 
 ## 收尾
@@ -88,6 +101,11 @@ val window = createWindow(900, 900, "rua")
 调用`GLFW.glfwDestroyWindow(window)`  
 关闭窗口和它的上下文 调用`GLFW.glfwTerminate()`  
 终止GLFW库的剩余内容
+
+````kotlin
+GLFW.glfwDestroyWindow(window)
+GLFW.glfwTerminate()
+````
 
 ---
 
@@ -114,7 +132,7 @@ GL11.glEnd()
 ````
 
 ![img.png](preparationImages/SimpleWhiteTrinagle.png)  
-来点彩色
+修改一下,来点色彩
 
 ````kotlin
 GL11.glBegin(GL11.GL_TRIANGLES)
