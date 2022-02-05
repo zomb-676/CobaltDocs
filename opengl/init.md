@@ -23,7 +23,7 @@ flowchart LR
 ````mmd
 flowchart LR
     初始化opengl --> 绘制画面 --窗口关闭--> 收尾
-    绘制画面 --> 绘制画面
+    绘制画面 --更新画面--> 绘制画面
 ````
 
 ## 初始化opengl
@@ -111,13 +111,17 @@ GLFW.glfwTerminate()
 
 ## 初次绘制
 
+>[!note]
+>这里只是概览,下一章将会详细解释
+
 写下我们的绘制循环
 
 ````kotlin
 while(!GLFW.glfwWindowShouldClose(window)){
+    GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
     //draw logic
-    GLFW.glfwSwapBuffers(window)//ignore it
-    GLFW.glfwPollEvents()//ignore it
+    GLFW.glfwSwapBuffers(window)
+    GLFW.glfwPollEvents()
 }
 ````
 
@@ -145,5 +149,5 @@ GL11.glVertex2f(0.5f, -0.5f)
 GL11.glEnd()
 ````
 
-![img.png](preparationImages/ColorfulTraiangle.png)
+![img.png](preparationImages/ColorfulTraiangle.png)  
 很好!

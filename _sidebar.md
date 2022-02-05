@@ -5,5 +5,5 @@
 - opengl
   - [开端](opengl/preparation.md)
   - [初试](opengl/init.md)
-
+  - [立即模式](opengl/explainImmediateMode.md)
 - [style](style.md)
