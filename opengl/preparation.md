@@ -23,6 +23,7 @@
         2. [Batch Rendering](https://www.youtube.com/watch?v=Th4huqR77rI)
 3. [docs.gl](https://docs.gl/)
 4. [opengl wiki](https://www.khronos.org/opengl/wiki/)
+5. [opengl spec](https://www.khronos.org/registry/OpenGL/specs/gl/)
 
 > [!warning]
 > 内容与参考资料相似度可能过高
