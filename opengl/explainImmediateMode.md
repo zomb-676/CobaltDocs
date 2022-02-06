@@ -12,9 +12,9 @@
 顶点可以理解为空间中点的信息的集合,可以包含坐标,颜色等信息
 
 有了点,又通过`GL11.glBegin(mode)`的mode指定的,就我们就得到了一个个的形状  
-这一个个形状称之为`图元(primitive)`,将点变为图元的过程称之为`图元装配(shape assembly)`
+这一个个形状称之为`primitive(图元)`,将点变为图元的过程称之为`shape assembly(图元装配)`
 
-绘制好后,我们需要调用GLFW.glfwSwapBuffers(window)  
+绘制好后,我们需要调用`GLFW.glfwSwapBuffers(window)`  
 将绘制好的内容交换到屏幕上显示出来  
 因为画面不是一瞬间绘制出来的,通过双缓冲,可以避免图像闪烁
 
@@ -63,7 +63,9 @@ flowchart LR
     收集顶点数据 --> 图元装配 --> 绘制
 ````
 
-这种绘制的流程称之为**立即模式(Immediate Mode)**
+这种绘制的流程称之为**Immediate Mode(立即模式)**
 它的优点成为了它的缺点,它太过简单,也太缺乏灵活行(不可配置),我们无法控制其中的其他部分,也缺乏性能  
 Stack Over Flow上[有篇](https://stackoverflow.com/questions/6733934/what-does-immediate-mode-mean-in-opengl)
 相关内容
+
+而与之相对而言对立的概念称之为**Core Profile(核心模式)**

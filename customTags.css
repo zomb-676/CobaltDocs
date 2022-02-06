@@ -10,7 +10,17 @@ option:hover {
 }
 
 summary {
-    cursor: pointer;
+    list-style: none;
+}
+
+summary::before{
+    content: "1";
+    transform: scale(1000000000%);
+    transition: transform 2s;
+}
+
+details[open] > summary::before{
+    transform: none;
 }
 
 details {

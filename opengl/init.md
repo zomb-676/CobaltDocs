@@ -67,7 +67,10 @@ val window = createWindow(900, 900, "rua")
 调用`glfwMakeContextCurrent(long window)`
 使得我们刚才创建的那个窗口的opengl上下文(状态)处在当前线程  
 一个线程有且仅有一个opengl上下文且在设置新的上下文前,旧的必须被移除  
-如果不太清楚什么是上下文(Context)的话,可以理解为opengl的一堆状态的合集
+如果不太清楚什么是Context(上下文)的话,可以理解为opengl的一堆状态的合集
+
+> An OpenGL context represents many things. A context stores all of the state associated with this instance of OpenGL  
+> 摘自wiki[OpenGL context](https://www.khronos.org/opengl/wiki/OpenGL_Context)的开头
 
 ---
 
@@ -86,7 +89,7 @@ val window = createWindow(900, 900, "rua")
 
 调用`GLFW.glfwMakeContextCurrent(window)`  
 把Capabilities绑定到当前线程 如果忘记保存之前的window handle  
-可以调用GLFW.glfwGetCurrentContext()获取当前线程的window handle
+可以调用`GLFW.glfwGetCurrentContext()`获取当前线程的window handle
 
 ````kotlin
 GLFW.glfwMakeContextCurrent(window)

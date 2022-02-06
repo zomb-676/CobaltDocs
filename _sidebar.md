@@ -6,4 +6,5 @@
   - [开端](opengl/preparation.md)
   - [初试](opengl/init.md)
   - [立即模式](opengl/explainImmediateMode.md)
+  - [核心模式](opengl/IntroCoreProfile.md)
 - [style](style.md)
