@@ -14,7 +14,7 @@ discord服务器[![discord](https://shields.io/badge/DiscordServer-Rua-purple?lo
 
 > [!note]
 > 请仔细注意以下注意事项
-> * 本文含有opengl的内容,请务必耐心阅读 <option>个人感觉opengl api的设计较为晦涩</option>  
+> * 本文含有opengl的内容,请务必耐心阅读 <option>个人感觉opengl api的设计较为晦涩</option>
 > * 由于个人水平有限,错误在所难免,有改进的意见请发Pull Request  
 > * **请确保你有足够的编程水平,这不是Java教程**  
 > * 同样的,对Modded Minecraft也有一定的了解  
