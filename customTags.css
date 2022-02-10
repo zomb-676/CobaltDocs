@@ -13,32 +13,40 @@ summary {
     list-style: none;
 }
 
-summary::before{
+summary::before {
     content: "1";
     transform: scale(1000000000%);
     transition: transform 2s;
 }
 
-details[open] > summary::before{
+details[open] > summary::before {
     transform: none;
 }
 
 details {
     padding: 10px;
-    background-color: #f8f8f8 ;
+    background-color: #f8f8f8;
     margin-bottom: 10px;
     border: rgba(54, 146, 225, 0.12) solid 3px;
     border-radius: 10px;
     width: fit-content;
 }
 
-details[open]{
+details[open] {
     width: auto;
-    transition: width 2s , height 2s;
+    transition: width 2s, height 2s;
 }
 
-img{
+img {
     border: rgba(80, 140, 189, 0.26) 3px solid;
     border-radius: 10px;
     box-shadow: 5px 5px 6px;
+}
+
+pre[v-pre],pre[v-pre] code{
+    background-color : #2d2d2d
+}
+
+pre[v-pre] code{
+    color: #ccc;
 }

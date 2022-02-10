@@ -11,16 +11,20 @@ flowchart LR
 ````
 
 但要切换到`Core Profile`,我们要修改一下
-````mmmd
-    flowchar LR
+
+````mmd
+flowchart LR
     收集顶点数据 --> 处理顶点数据 --> 图元装配 --> 处理像素 -->绘制
 ````
 
-换用专用的术语,修改一下流程
-````mmmd
-    flowchar LR
-    Vertex Puller --> Vertex Shader(顶点着色器) --> 图元装配 --> Fragment Shader(片元/片段着色器) --> Draw Call
+换用专用的术语,修改一下流程  
+
+````mmd
+flowchart LR
+    VertexPuller --> VertexShader(顶点着色器) --> 图元装配 --> FragmentShader(片元/片段着色器) --> DrawCall  
 ````
+
+
 
 > [!note]
 > 上图简化自  
@@ -31,3 +35,22 @@ flowchart LR
 `Shader(着色器)`,[定义]([参考自](https://www.khronos.org/opengl/wiki/Shader))
 为用户编写的运行在GPU上的程序<option>和`光影`关系其实不大,虽然`着色器`这个翻译也一样</option>
 
+````glsl
+    
+````
+
+```html
+<p>This is a paragraph</p>
+<a href="//docsify.js.org/">Docsify</a>
+```
+
+```bash
+echo "hello"
+```
+
+```php
+function getAdder(int $x): int 
+{
+    return 123;
+}
+```

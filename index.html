@@ -5,10 +5,12 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta charset="UTF-8">
     <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/themes/vue.css">
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.css"> <!--mermaid-->
-    <script src="//cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script> <!--mermaid-->
-    <!--    <script src="//cdn.jsdelivr.net/npm/docsify-katex@latest/dist/docsify-katex.js"></script>&lt;!&ndash;kaTex&ndash;&gt;-->
-
+    <!--mermaid-->
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.css">
+    <!--mermaid-->
+    <script src="//cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <!--prism-heme-->
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1.x/themes/prism-tomorrow.min.css" rel="stylesheet" />
     <title>Cobalt</title>
 </head>
 <body>
@@ -38,8 +40,11 @@
                     return "<link rel=\"stylesheet\" type=\"text/css\" href=\"customTags.css\">\n\n"
                         + content
                 });
-            },
 
+                hook.doneEach(function () {
+                    // hljs.highlightAll();
+                });
+            },
 
         ],
         markdown: {
@@ -98,5 +103,11 @@
 <script src="https://cdn.jsdelivr.net/npm/docsify-progress@latest/dist/progress.min.js"></script>
 <!--select-->
 <script src="https://cdn.jsdelivr.net/npm/docsify-select@1"></script>
+<!--prism-support-language-add-->
+<script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-c.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-kotlin.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-clike.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-java.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-glsl.min.js"></script>
 </body>
 </html>
