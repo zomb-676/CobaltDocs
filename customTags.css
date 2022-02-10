@@ -44,7 +44,8 @@ img {
 }
 
 pre[v-pre],pre[v-pre] code{
-    background-color : #2d2d2d
+    background-color : #2d2d2d;
+    border-radius: 8px;
 }
 
 pre[v-pre] code{
