@@ -52,7 +52,7 @@ public long FunA(int parameter);
 
 ````javas
 public String FunA(List<Int> parameter);
-public String FunB(List<Boolean> parameter);
+public String FunA(List<Boolean> parameter);
 ````
 
 > 不可,在valhalla落地前,java的泛型会被擦除,例中两者都会被擦除为(Ljava/util/List;)Ljava/lang/String;  
