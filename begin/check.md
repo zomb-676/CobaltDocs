@@ -39,16 +39,16 @@ Thread Thread = new Thread(new Runnable(){
 > new XXX()只代表调用无参构
 > 不太恰当的说,相当于Supplier<XXX>.get()
 
-6. 下列两个函数声明可否共存
+6. 下列两个函数声明可否共存(在同一作用域下)
 
 ````javas
 public int FunA(int parameter);
-public long FunB(int parameter);
+public long FunA(int parameter);
 ````
 
 > 不可,java在语法层面并不允许返回值重载
 
-7. 下列两个函数声明可否共存
+7. 下列两个函数声明可否共存(在同一作用域下)
 
 ````javas
 public String FunA(List<Int> parameter);
