@@ -105,4 +105,6 @@ GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT,GLFW.GLFW_TRUE)
 理论上能够使报错消失  
 但正如wiki所说[**compatibility is not guaranteed to be available(兼容并不被保证)**](https://www.khronos.org/opengl/wiki/OpenGL_Context#Context_types)
 
-下一章我们讲讲述如何在`Core Profile`下渲染一个简单的三角形
+再我们讲述如何在`Core Profile`下渲染一个简单的三角形前
+
+我们先介绍一下LWJGL中内存相关的操作

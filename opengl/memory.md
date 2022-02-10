@@ -4,6 +4,7 @@
 
 > [!note]
 > 如果没有接触过c式的部分内存概念可能会有上手障碍  
+> 有相关经验者可直接跳过本章  
 > 本章与[LWJGL的介绍](https://github.com\/LWJGL/lwjgl3-wiki/wiki/1.3.-Memory-FAQ)几乎一致
 
 由于lwjgl是一个java库,而glfw是一个c库  
