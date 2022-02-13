@@ -8,5 +8,5 @@
   - [立即模式](opengl/explainImmediateMode.md)
   - [核心模式](opengl/IntroCoreProfile.md)
   - [内存](opengl/memory.md)
-  - [重写三角形](opengl/trinagle.md)
+  - [重写三角形](opengl/triangle.md)
 - [style](style.md)
