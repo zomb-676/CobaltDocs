@@ -46,7 +46,7 @@ fun init() {
 
 调用`GLFW.glfwCreateWindow(int width, int height,CharSequence title,long monitor,long share)`  
 来创建窗口  
-`monitor`和s`hare`可以传入`MemoryUtil.NULL`  
+`monitor`和`share`可以传入`MemoryUtil.NULL`  
 `MemoryUtil.NULL`查定义可知就是0L,只不过这样可读性更高,在kt也不会报错
 ![img.png](preparationImages/glfwCreateWindowComment.png)
 
