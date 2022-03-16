@@ -2,6 +2,8 @@
 
 ---
 
+## 一些补充
+
 `GLFW.glfwWindowShouldClose(window)`用于判断窗口是否需要关闭  
 与他配套使用的是`GLFW.glfwPollEvents()`,用于处理所有待办事件 例如窗口移动,调整窗口大小,窗口关闭  
 也就是说,如果不调用`glfwPollEvents()`,`glfwWindwosShouldClose(window)`是不会返回的true的
@@ -53,7 +55,7 @@ while (!GLFW.glfwWindowShouldClose(window)) {
 
 > ![!note]
 > 有些内容暂且按下不表  
-> 为何glVertex2f中传入的参数都在1\~1 (不严格)  
+> 为何glVertex2f中传入的参数都在-1\~1 (不严格)  
 > 为何glColor3f中传入的参数为0\~1
 
 从上我们不难发现绘制的过程可以这样表示,我们需要做的仅仅是其中的第一部分
@@ -63,9 +65,14 @@ flowchart LR
     收集顶点数据 --> 图元装配 --> 绘制
 ````
 
-这种绘制的流程称之为**Immediate Mode(立即模式)**
+这种绘制的流程称之为**Immediate Mode(立即模式)**  
 它的优点成为了它的缺点,它太过简单,也太缺乏灵活行(不可配置),我们无法控制其中的其他部分,也缺乏性能  
 Stack Over Flow上[有篇](https://stackoverflow.com/questions/6733934/what-does-immediate-mode-mean-in-opengl)
 相关内容
 
 而与之相对而言对立的概念称之为**Core Profile(核心模式)**
+
+> ![!note]
+> 立即模式已经过时  
+> 本文使用仅仅为了能让读者尽早写出一个程序  
+> 并且对顶点有一个粗浅的认识
