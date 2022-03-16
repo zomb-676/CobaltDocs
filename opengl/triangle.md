@@ -44,7 +44,7 @@ flowchart LR
 * @see <a target="_blank" href="http://docs.gl/gl4/glGenBuffers">Reference Page</a>
 */
 NativeType("void")
-ublic static int glGenBuffers() {
+public static int glGenBuffers() {
    return GL15C.glGenBuffers();
 }
 ````
