@@ -252,3 +252,6 @@ public static void renderWhiteSolidBlock(BlockState pBlockState, PoseStack pMatr
 还是固定程度的的....  
 
 至少看完以后你知道了怎样实现这样一个效果
+
+比如
+![tnt](../picture/overlayTexture/tnt.gif)
