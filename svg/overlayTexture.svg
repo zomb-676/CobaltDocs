@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160">
+    <rect width="320" height="320" style="fill:black"></rect>
+    <rect x="150" width="10" height="80" style="fill:white" opacity="25%" />
+    <rect x="140" width="10" height="80" style="fill:white" opacity="30%" />
+    <rect x="130" width="10" height="80" style="fill:white" opacity="35%" />
+    <rect x="120" width="10" height="80" style="fill:white" opacity="40%" />
+    <rect x="110" width="10" height="80" style="fill:white" opacity="45%" />
+    <rect x="100" width="10" height="80" style="fill:white" opacity="50%" />
+    <rect x="90"  width="10" height="80" style="fill:white" opacity="55%" />
+    <rect x="80"  width="10" height="80" style="fill:white" opacity="60%" />
+    <rect x="70"  width="10" height="80" style="fill:white" opacity="65%" />
+    <rect x="60"  width="10" height="80" style="fill:white" opacity="70%" />
+    <rect x="50"  width="10" height="80" style="fill:white" opacity="75%" />
+    <rect x="40"  width="10" height="80" style="fill:white" opacity="80%" />
+    <rect x="30"  width="10" height="80" style="fill:white" opacity="85%" />
+    <rect x="20"  width="10" height="80" style="fill:white" opacity="90%" />
+    <rect x="10"  width="10" height="80" style="fill:white" opacity="95%" />
+    <rect x="0"  width="10" height="80" style="fill:white" opacity="100%" />
+    <!-- <rect width="16" height="8"  /> -->
+     <rect width="160" height="80px" style="fill:red" y="80" opacity="69.84%" />
+</svg>

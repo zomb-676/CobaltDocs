@@ -30,11 +30,17 @@ flowchart LR
 > 出自opengl规范4.6 35页
 > 为了便于理解以及没有想到更好的办法就翻译成上文了
 
+![VisualRenderPipeLine.png](VisualRenderPipeLine.png)  
+引用自LearnOpenglCN  
+
 `Shader(着色器)`,[定义]([参考自](https://www.khronos.org/opengl/wiki/Shader))
 为用户编写的运行在GPU上的程序<option>和`光影`关系其实不大,虽然`着色器`这个翻译也一样</option>
 
 # Vertex Buffer Object
 
+之前提到,我们需要将顶点数据提交到显卡来绘制我们所需的对象  
+而在`Core Profile`模式下,提交顶点数据方法由`glVertex2f` `glColor3f `  
+修改为`VBO`即    
 `Vertex Buffer Object(顶点缓冲对象)`用于存储将要发送给GPU的数据
 
 ````java
@@ -49,7 +55,7 @@ public static int glGenBuffers() {
 }
 ````
 
-创建VBO,返回值为所创建VBO的索引,也称之为name
+创建VBO,返回值为所创建VBO的索引,在参数形参名中有时称之为的name  
 
 ````java
 /**
@@ -67,8 +73,8 @@ public static void glBindBuffer(@NativeType("GLenum") int target, @NativeType("G
 用于将指定的VBO绑定到当前上下文
 
 > [!note]
-> 在OpenGl中,我们上文产生的VBO载体称之为Buffer Objects  
-> 里面可以存储各种不同的数据,详见[wiki](https://www.khronos.org/opengl/wiki/Buffer_Object)
+> 在OpenGl中,我们上文产生的VBO对象称之为Buffer Objects  
+> 里面可以存储各种不同的类型数据,包括但不仅限于顶点数据,详见[wiki](https://www.khronos.org/opengl/wiki/Buffer_Object)
 > 数据的类型通过target指定,这里我们使用`GL_ARRAY_BUFFER`
 
 <!-- tabs:start -->
@@ -118,7 +124,7 @@ val data: FloatBuffer = MemoryUtil.memAllocFloat(15).apply {
 ````
 
 > [!note]
-> 注意flip不省
+> 注意flip不能省
 
 <!-- tabs:end -->
 
