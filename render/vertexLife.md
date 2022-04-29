@@ -233,6 +233,24 @@ mc已定义了如下
 
 几乎就是定义了`attribute`设定的所有参数了
 
+这个`Padding`并不会占用实际的内存,在`BufferBuilder`内,会直接跳过
+```java
+public void nextElement() {
+  ImmutableList<VertexFormatElement> immutablelist = this.format.getElements();
+  this.elementIndex = (this.elementIndex + 1) % immutablelist.size();
+  this.nextElementByte += this.currentElement.getByteSize();
+  VertexFormatElement vertexformatelement = immutablelist.get(this.elementIndex);
+  this.currentElement = vertexformatelement;
+  if (vertexformatelement.getUsage() == VertexFormatElement.Usage.PADDING) { //!!看这
+     this.nextElement();
+  }
+
+  if (this.defaultColorSet && this.currentElement.getUsage() == VertexFormatElement.Usage.COLOR) {
+     BufferVertexConsumer.super.color(this.defaultR, this.defaultG, this.defaultB, this.defaultA);
+  }
+}
+```
+
 而`VertexFormatElement`则则更进一步,将attribute与type绑定
 在类`DefaultVertexFormat`内可以查到所有的mc内定义的
 
