@@ -293,3 +293,4 @@ public VertexFormat(ImmutableMap<String, VertexFormatElement> pElementMapping) {
 调用`BufferUploader.end(BufferBuilder)`,间接调用`BufferUploader.updateVertexSetup(VertexFormat)`  
 其内部绑定了当前`Opengl context`的`VertexArrayObject`与`Buffer Object(存储顶点数据)`
 
+又调用了`glBufferData`与`drawElements`,完成一切的工作
