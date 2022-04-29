@@ -26,7 +26,7 @@ mojang对整个过程进行了封装,这里的容器被封装为`BufferBuilder`
 这里列出了`public`的函数,并且子类未展示父类函数,去除了所有`Balk`版本,去除了过长的  
 `vertex(x, y, z, r, g, b, a, texU, texV, overlayUV, lightmapUV, normalX, normalY, normalZ) void`  
 一个函数若同时拥有float/double和int类型的参数的重载,则表明其值范围不同
-float/double表明参数需要`标准化/归一化`必须处于0~1,而int一般表明其值位于0~255  
+float/double表明参数需要`标准化/归一化`必须处于0-1,而int一般表明其值位于0-255  
 接口`VertexConsumer`还继承自`IForgeVertexConsumer`,里面也是`balk`版本的函数
 
 ```mmd
