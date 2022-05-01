@@ -83,7 +83,7 @@ DefaultedVertexConsumer  ..>  VertexConsumer
 
 ```
 
-可以发现出于继承树顶层的`VertexConsumer`定义了存放了不同功能的顶点  
+可以发现位于继承树顶层的`VertexConsumer`定义了存放了不同功能的顶点数据  
 `BufferVertexConsumer`则具体定义了将具体类型的数据存放  
 而`BufferBuilder`则是具体的实现者  
 这里实现了对于`Render Type` `translucent`的顶点顺序排序  
@@ -91,9 +91,9 @@ DefaultedVertexConsumer  ..>  VertexConsumer
 
 那么我们该如何获取我们想要的`VertexBuilder`呢?
 
-在这节,我们先不引入`RenderTye`
+在这节,我们先不引入`RenderType`
 直接通过`Tesselator.getInstance().getBuilder()`或者直接使用`BufferBuilder`的构造函数  
-在提交数据时候,前者通过`Tesselator#end`,后者需要`BufferBuilder#end`并且`BufferUploader.end(buffer)`
+在提交数据时候,前者通过`Tesselator#end`,后者需要`BufferBuilder#end`和`BufferUploader.end(buffer)`
 
 ```kotlin
 @EventBusSubscriber(Dist.CLIENT)
@@ -309,6 +309,110 @@ public VertexFormat(ImmutableMap<String, VertexFormatElement> pElementMapping) {
 ,`SequentialIndex`
 
 调用`BufferUploader.end(BufferBuilder)`,间接调用`BufferUploader.updateVertexSetup(VertexFormat)`  
-其内部绑定了当前`Opengl context`的`VertexArrayObject`与`Buffer Object(存储顶点数据)`
-
+其内部绑定了当前`Opengl context`的`VertexArrayObject`与`Buffer Object(存储顶点数据)`  
 又调用了`glBufferData`与`drawElements`,完成一切的工作
+
+至于`Buffer Object(存储顶点索引数据)`则是由`AutoStorageIndexBuffer`完成的
+
+截取自`BufferUploader#_end`
+```java
+int i = pVertexCount * pFormat.getVertexSize();
+if (pSequentialIndex) {
+   RenderSystem.AutoStorageIndexBuffer rendersystem$autostorageindexbuffer = RenderSystem.getSequentialBuffer(pMode, pIndexCount);
+   int indexBufferName = rendersystem$autostorageindexbuffer.name();
+   if (indexBufferName != lastIndexBufferObject) {
+      GlStateManager._glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferName);
+      lastIndexBufferObject = indexBufferName;
+   }
+} else {
+   int indexBufferName = pFormat.getOrCreateIndexBufferObject();
+   if (indexBufferName != lastIndexBufferObject) {
+      GlStateManager._glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferName);
+      lastIndexBufferObject = indexBufferName;
+   }
+   pBuffer.position(i);
+   pBuffer.limit(i + pIndexCount * pIndexType.bytes);
+   GlStateManager._glBufferData(GL_ELEMENT_ARRAY_BUFFER, pBuffer, GL_DYNAMIC_DRAW);
+}
+```
+
+上面那块,即if判断为true的时候执行的代码块(pSequentialIndex指的是在bufferBuilder时,有无指定过sortingPoints,没有则为true)
+
+而那段`RenderSystem.getSequentialBuffer(pMode, pIndexCount)`
+```java
+public static RenderSystem.AutoStorageIndexBuffer getSequentialBuffer(VertexFormat.Mode pFormatMode, int pNeededIndexCount) {
+   assertOnRenderThread();
+   RenderSystem.AutoStorageIndexBuffer rendersystem$autostorageindexbuffer;
+   if (pFormatMode == VertexFormat.Mode.QUADS) {
+      rendersystem$autostorageindexbuffer = sharedSequentialQuad;
+   } else if (pFormatMode == VertexFormat.Mode.LINES) {
+      rendersystem$autostorageindexbuffer = sharedSequentialLines;
+   } else {
+      rendersystem$autostorageindexbuffer = sharedSequential;
+   }
+
+   rendersystem$autostorageindexbuffer.ensureStorage(pNeededIndexCount);
+   return rendersystem$autostorageindexbuffer;
+}
+```
+这里可能返回的三个值分别定义为  
+```java
+private static final RenderSystem.AutoStorageIndexBuffer sharedSequential 
+    = new RenderSystem.AutoStorageIndexBuffer(/*pVertexStride*/ 1,/*pIndexStride*/ 1, IntConsumer::accept);
+private static final RenderSystem.AutoStorageIndexBuffer sharedSequentialQuad 
+    = new RenderSystem.AutoStorageIndexBuffer(4, 6, (IntConsumer pConsumer, int pIndex) -> {
+       pConsumer.accept(pIndex + 0);
+       pConsumer.accept(pIndex + 1);
+       pConsumer.accept(pIndex + 2);
+       pConsumer.accept(pIndex + 2);
+       pConsumer.accept(pIndex + 3);
+       pConsumer.accept(pIndex + 0);
+    });
+private static final RenderSystem.AutoStorageIndexBuffer sharedSequentialLines 
+    = new RenderSystem.AutoStorageIndexBuffer(4, 6,/*pGenerator*/ (pConsumer, pIndex) -> {
+       pConsumer.accept(pIndex + 0);
+       pConsumer.accept(pIndex + 1);
+       pConsumer.accept(pIndex + 2);
+       pConsumer.accept(pIndex + 3);
+       pConsumer.accept(pIndex + 2);
+       pConsumer.accept(pIndex + 1);
+    });
+```
+
+lambda在这里调用
+```java
+void ensureStorage(int pNeededIndexCount) {
+   if (pNeededIndexCount > this.indexCount) {
+      pNeededIndexCount = Mth.roundToward(pNeededIndexCount * 2, this.indexStride);
+      RenderSystem.LOGGER.debug("Growing IndexBuffer: Old limit {}, new limit {}.", this.indexCount, pNeededIndexCount);
+      if (this.name == 0) {
+         this.name = GlStateManager._glGenBuffers();
+      }
+
+      VertexFormat.IndexType vertexformat$indextype = VertexFormat.IndexType.least(pNeededIndexCount);
+      int i = Mth.roundToward(pNeededIndexCount * vertexformat$indextype.bytes, 4);
+      GlStateManager._glBindBuffer(34963, this.name);
+      GlStateManager._glBufferData(34963, (long)i, 35048);
+      ByteBuffer bytebuffer = GlStateManager._glMapBuffer(34963, 35001);
+      if (bytebuffer == null) {
+         throw new RuntimeException("Failed to map GL buffer");
+      } else {
+         this.type = vertexformat$indextype;
+         it.unimi.dsi.fastutil.ints.IntConsumer intconsumer = this.intConsumer(bytebuffer);
+
+         for(int j = 0; j < pNeededIndexCount; j += this.indexStride) {
+            this.generator.accept(intconsumer, j * this.vertexStride / this.indexStride); //there
+         }
+
+         GlStateManager._glUnmapBuffer(34963);
+         GlStateManager._glBindBuffer(34963, 0);
+         this.indexCount = pNeededIndexCount;
+         BufferUploader.invalidateElementArrayBufferBinding();
+      }
+   }
+}
+```
+
+`this.indexCount`为该`AutoStorageIndexBuffer`已缓存的`index`数据,只有当有必要,即当前需要提交的  
+`Buffer Object(顶点数据)`所需的`index`数量大于已缓存的数量前,才会重新生成,刷新,提交  
+所以函数名起`ensure`还算比较恰当?
