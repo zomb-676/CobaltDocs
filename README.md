@@ -3,7 +3,6 @@
 
 Cobalt是一套Minecraft的渲染相关的说明文档
 
-github 示例代码仓库:[![github仓库](https://shields.io/badge/github-Cobalt-blue?logo=Github&style=for-the-badge)](https://github.com/zomb-676/Cobalt)  
 github docs仓库:[![github仓库](https://shields.io/badge/github-CobaltDocs-blue?logo=Github&style=for-the-badge)](https://github.com/zomb-676/CobaltDocs)  
 工程仓库:[![github仓库](https://shields.io/badge/github-Cobalt-blue?logo=Github&style=for-the-badge)](https://github.com/zomb-676/CobaltDocs)  
 discord服务器[![discord](https://shields.io/badge/DiscordServer-Rua-purple?logo=Discord&style=for-the-badge)](https://discord.gg/V4jmpZ2rMX)  
