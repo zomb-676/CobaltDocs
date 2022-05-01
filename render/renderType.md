@@ -4,6 +4,8 @@
 
 `RenderType`可以说是mc渲染中最为重要的一部分,而它实际上是一些列对于`OpenGL context`操作的合集
 
+## structure
+
 ```mmd
 flowchart RL
 BooleanStateShard
@@ -47,7 +49,10 @@ WriteMaskStateShard  -->  RenderStateShard
 ```
 
 处于继承树顶层的`RenderStateShard`拥有三个字段,`String name`,`Runnable setupState`,`Runnable clearState`  
+正如起名,`setupState`,`clearState`分别在`renderType`配合调用`drawCall`前后被调用,用于便利的控制`opengl context`  
 其他的派生类只是对所需改变上下文所需字段的特化
+
+## overview table
 
 | class/instance name        | name                     | extra/comment                                                                                     |
 |----------------------------|--------------------------|---------------------------------------------------------------------------------------------------|
@@ -105,6 +110,8 @@ WriteMaskStateShard  -->  RenderStateShard
 
 `CompositeState`正是每种`RenderStateShard`合集,mj还提供了`CompositeStateBuilder`用`Builder模式`来构造对象  
 而`RenderType`则是`VertexFormat`,`bufferSize`,`CompositeState`的合集  
+
+## example
 
 利用`RenderType`简化上次的代码
 
@@ -221,3 +228,64 @@ protected static final RenderStateShard.DepthTestStateShard NO_DEPTH_TEST
 然后在笔者所处的环境中...mj没有配对的调用`disable`,只能手动添加
 
 </details>
+
+## bufferSource & batch
+
+从调用的函数名`endBatch`暗示了`RenderType`配合`BufferSource`其实是用于批量渲染的  
+
+```java
+@OnlyIn(Dist.CLIENT)
+public interface MultiBufferSource {
+   static MultiBufferSource.BufferSource immediate(BufferBuilder pBuilder) {
+      return immediateWithBuffers(ImmutableMap.of(), pBuilder);
+   }
+
+   static MultiBufferSource.BufferSource immediateWithBuffers(Map<RenderType, BufferBuilder> pMapBuilders, BufferBuilder pBuilder) {
+      return new MultiBufferSource.BufferSource(pBuilder, pMapBuilders);
+   }
+
+   VertexConsumer getBuffer(RenderType pRenderType);
+
+   @OnlyIn(Dist.CLIENT)
+   public static class BufferSource implements MultiBufferSource {
+      protected final BufferBuilder builder;
+      protected final Map<RenderType, BufferBuilder> fixedBuffers;
+      protected Optional<RenderType> lastState = Optional.empty();
+      protected final Set<BufferBuilder> startedBuffers = Sets.newHashSet();
+
+      protected BufferSource(BufferBuilder pBuilder, Map<RenderType, BufferBuilder> pFixedBuffers) {
+         this.builder = pBuilder;
+         this.fixedBuffers = pFixedBuffers;
+      }
+
+      public VertexConsumer getBuffer(RenderType pRenderType) {
+         Optional<RenderType> optional = pRenderType.asOptional();
+         BufferBuilder bufferbuilder = this.getBuilderRaw(pRenderType);
+         if (!Objects.equals(this.lastState, optional)) {
+            if (this.lastState.isPresent()) {
+               RenderType rendertype = this.lastState.get();
+               if (!this.fixedBuffers.containsKey(rendertype)) {
+                  this.endBatch(rendertype);
+               }
+            }
+
+            if (this.startedBuffers.add(bufferbuilder)) {
+               bufferbuilder.begin(pRenderType.mode(), pRenderType.format());
+            }
+
+            this.lastState = optional;
+         }
+
+         return bufferbuilder;
+      }
+
+      private BufferBuilder getBuilderRaw(RenderType pRenderType) {
+         return this.fixedBuffers.getOrDefault(pRenderType, this.builder);
+      }
+   }
+}
+```
+
+可以发现,如果我们传入的`renderType`包含在`pMapBuilders/fixedBuffer`内,那么每次拿到的`BufferBuilder`  
+便是该`renderType`独占的,达到`batch`的效果  
+否则,将会共享`pBuilder`,并且还会直接`endBatch`上一次对应的`renderType`和`bufferBuilder`避免污染  
