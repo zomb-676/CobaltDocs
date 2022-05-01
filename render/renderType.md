@@ -289,3 +289,57 @@ public interface MultiBufferSource {
 可以发现,如果我们传入的`renderType`包含在`pMapBuilders/fixedBuffer`内,那么每次拿到的`BufferBuilder`  
 便是该`renderType`独占的,达到`batch`的效果  
 否则,将会共享`pBuilder`,并且还会直接`endBatch`上一次对应的`renderType`和`bufferBuilder`避免污染  
+
+<details>
+<summary>fixedBuffer</summary>
+
+```java
+	private final SortedMap<RenderType, BufferBuilder> fixedBuffers = Util.make(new Object2ObjectLinkedOpenHashMap<>(), (map) -> {
+		map.put(Sheets.solidBlockSheet(), this.fixedBufferPack.builder(RenderType.solid()));
+		map.put(Sheets.cutoutBlockSheet(), this.fixedBufferPack.builder(RenderType.cutout()));
+		map.put(Sheets.bannerSheet(), this.fixedBufferPack.builder(RenderType.cutoutMipped()));
+		map.put(Sheets.translucentCullBlockSheet(), this.fixedBufferPack.builder(RenderType.translucent()));
+		put(map, Sheets.shieldSheet());
+		put(map, Sheets.bedSheet());
+		put(map, Sheets.shulkerBoxSheet());
+		put(map, Sheets.signSheet());
+		put(map, Sheets.chestSheet());
+		put(map, RenderType.translucentNoCrumbling());
+		put(map, RenderType.armorGlint());
+		put(map, RenderType.armorEntityGlint());
+		put(map, RenderType.glint());
+		put(map, RenderType.glintDirect());
+		put(map, RenderType.glintTranslucent());
+		put(map, RenderType.entityGlint());
+		put(map, RenderType.entityGlintDirect());
+		put(map, RenderType.waterMask());
+		ModelBakery.DESTROY_TYPES.forEach((item) -> {
+		   put(map, item);
+		});
+	});
+```
+
+</details>
+
+## special? not special
+
+相信各位都见过来自[TheGreyGhost](https://greyminecraftcoder.blogspot.com/2020/04/block-rendering-1144.html)的这张图  
+![chunkBufferLayers](../picture/renderType/chunkBufferLayers.png)  
+并且配合`ItemBlockRenderTypes#setRenderLayer`或者层叫做`RenderTypeLookup#setRenderLayer`的方法为流体/方块设置`RenderLayer`?  
+但是,这里的参数确实是`RenderType`啊,这几个并没有什么特殊的啊  
+确实如此,但真正特殊的其实在于它们被渲染的代码块  
+大多数时候,我们只关心于`entity`.`blockEntity`,`gui`的渲染,它们的数量与遍布每个角落的渲染方式与之相比平平无奇的方块少的多的多  
+面对这种较大的数量级,mj对于它们采用了特殊的方式  
+
+`RenderType`类内
+```java
+public static List<RenderType> chunkBufferLayers() {
+	return ImmutableList.of(solid(), cutoutMipped(), cutout(), translucent(), tripwire());
+}
+```
+
+`tripwire()`这个在以前是没有的  
+可以看到,它们与区块的渲染有密切相关
+
+
+wip...
