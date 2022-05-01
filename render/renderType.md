@@ -175,6 +175,12 @@ object TryRenderType {
 }
 ```
 
+>[!note]
+> 这里我们使用一个`RenderTypeHolder`  
+> 是因为许多需要使用的字段访问级别仅为`protected`  
+> 通过继承父类来暴露`protected`  
+> 所以`holder`并不会被构造  
+
 可以看到,还是简洁了不少  
 请无视最后的`RenderSystem.disableDepthTest()`,为什么有这个我折叠了,正常是不需要的
 

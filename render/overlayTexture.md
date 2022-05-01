@@ -3,6 +3,9 @@
 ---
 
 ![overlayTexture](..\svg\overlayTexture.svg)  
+
+## source  
+
 这张称之为OverlayTexture的材质不存在于材质包中,由代码生成  
 如下为具体代码,来自`net.minecraft.client.renderer.texture.OverlayTexture`的构造方法
 ```java
@@ -31,6 +34,8 @@ println((-1308622593).toUInt())
 上半部分  
 有符号数`16777215`转化为16进制`ffffff`  
 `k`左移24位,为二进制数8位,代表alpha,对应颜色rgba `ff ff ff k`
+
+## principle & usage
 
 ---
 这个材质有什么用呢,在说明这之前,我们先来回一下我们在函数参数中见到有关OverlayTexture的地方
@@ -252,6 +257,8 @@ public static void renderWhiteSolidBlock(BlockState pBlockState, PoseStack pMatr
 还是固定程度的的....  
 
 至少看完以后你知道了怎样实现这样一个效果
+
+## example
 
 比如
 ![tnt](../picture/overlayTexture/tnt.gif)

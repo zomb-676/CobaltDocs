@@ -4,6 +4,8 @@
 
 在本节,我们将追溯顶点从产生到`draw call`的全部流程
 
+## flow
+
 在开始之前,我们梳理一下OpenGL中顶点的流程
 
 ```mmd
@@ -21,6 +23,8 @@ end
 upload --> any[...]
 any --> drawCall
 ```
+
+## bufferBuilder
 
 mojang对整个过程进行了封装,这里的容器被封装为`BufferBuilder`  
 这里列出了`public`的函数,并且子类未展示父类函数,去除了所有`Balk`版本,去除了过长的  
@@ -95,6 +99,8 @@ DefaultedVertexConsumer  ..>  VertexConsumer
 直接通过`Tesselator.getInstance().getBuilder()`或者直接使用`BufferBuilder`的构造函数  
 在提交数据时候,前者通过`Tesselator#end`,后者需要`BufferBuilder#end`和`BufferUploader.end(buffer)`
 
+## example
+
 ```kotlin
 @EventBusSubscriber(Dist.CLIENT)
 object VertexFill {
@@ -154,6 +160,8 @@ object VertexFill {
 }
 ```
 
+## VertexFormat.Mode
+
 可以看到,首先我们首先调用了`begin(VertexFormat.Mode pMode, VertexFormat pFormat)`  
 如下是`VertexFormat.Mode`的部分定义
 
@@ -204,6 +212,8 @@ public void endVertex() {
 
 顶点数据被`duplicate`了一份,所以绘制时仍只需传入两个顶点数据,具体可以查看`GLX#_renderCrosshair`
 
+## VertexFormatElement.Type
+
 在看`VertexFormat`前,我们先查看枚举`VertexFormatElement.Type`
 
 | name   | size | name           | glType            |
@@ -250,6 +260,8 @@ public void nextElement() {
   }
 }
 ```
+
+## VertexFormatElement
 
 而`VertexFormatElement`则则更进一步,将attribute与type绑定
 在类`DefaultVertexFormat`内可以查到所有的mc内定义的
@@ -303,6 +315,8 @@ public VertexFormat(ImmutableMap<String, VertexFormatElement> pElementMapping) {
 | POSITION_TEX_LIGHTMAP_COLOR | Position,UV0,UV2,Color                    |
 | POSITION_TEX_COLOR_NORMAL   | Position,UV0,Color,Normal,Padding         |
 
+## upload vertex
+
 我们在调用`BufferBuilder`的方法为每个顶点传递顶点数据时,应与后方的定义顺序一致.并在单个顶点所需内容全传递完成后,调用`BufferBuilder#endVertex`
 
 调用`BufferBuilder#end`,将在其内部产生一个`DrawState`,并且存储该次的相关数据`Format`,`VertexCount`,`IndexCount`,`Mode`,`IndexType`,`IndexOnly`
@@ -311,6 +325,8 @@ public VertexFormat(ImmutableMap<String, VertexFormatElement> pElementMapping) {
 调用`BufferUploader.end(BufferBuilder)`,间接调用`BufferUploader.updateVertexSetup(VertexFormat)`  
 其内部绑定了当前`Opengl context`的`VertexArrayObject`与`Buffer Object(存储顶点数据)`  
 又调用了`glBufferData`与`drawElements`,完成一切的工作
+
+## upload index
 
 至于`Buffer Object(存储顶点索引数据)`则是由`AutoStorageIndexBuffer`完成的
 
