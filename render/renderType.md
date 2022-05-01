@@ -104,4 +104,114 @@ WriteMaskStateShard  -->  RenderStateShard
 | NO_OVERLAY                 | overlay                  | useLightmap:false                                                                                 |
 
 `CompositeState`正是每种`RenderStateShard`合集,mj还提供了`CompositeStateBuilder`用`Builder模式`来构造对象  
-而`RenderType`则是`VertexFormat`,`bufferSize`,`CompositeState`的合集
+而`RenderType`则是`VertexFormat`,`bufferSize`,`CompositeState`的合集  
+
+利用`RenderType`简化上次的代码
+
+```kotlin
+@Mod.EventBusSubscriber(Dist.CLIENT)
+object TryRenderType {
+
+    private class RenderTypeHolder : RenderType("any", DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 256, false, false, {}, {}) {
+        companion object {
+            @Suppress("INACCESSIBLE_TYPE")
+            val renderType: RenderType = create(
+                "posColorRenderType", DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 256, false, false,
+                CompositeState.builder()
+                    .setShaderState(POSITION_COLOR_SHADER)
+                    .setCullState(NO_CULL)
+                    .setDepthTestState(NO_DEPTH_TEST)
+                    .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                    .createCompositeState(false)
+            )
+        }
+    }
+
+    @SubscribeEvent
+    @JvmStatic
+    fun renderLevelLastEvent(event: RenderLevelLastEvent) {
+        if (Minecraft.getInstance().player!!.mainHandItem.item != Items.ANVIL) {
+            return
+        }
+        val bufferSource = Minecraft.getInstance().renderBuffers().bufferSource()
+        val buffer = bufferSource.getBuffer(RenderTypeHolder.renderType)
+        val stack = event.poseStack
+        val cameraPos = Minecraft.getInstance().gameRenderer.mainCamera.position
+        stack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z)
+        val playerPos = Minecraft.getInstance().player!!.position()
+        val x = floor(playerPos.x).toInt()
+        val y = floor(playerPos.y).toInt()
+        val z = floor(playerPos.z).toInt()
+        val pos = BlockPos.MutableBlockPos()
+        for (dx in (x - 15)..(x + 15)) {
+            pos.x = dx
+            for (dy in (y - 15)..(y + 15)) {
+                pos.y = dy
+                for (dz in (z - 15)..(z + 15)) {
+                    pos.z = dz
+                    val blockState = Minecraft.getInstance().level!!.getBlockState(pos)
+                    if (blockState.block == Blocks.ANVIL) {
+                        stack.pushPose()
+                        stack.translate(pos.x.toDouble(), pos.y.toDouble(), pos.z.toDouble())
+                        val lastPose = stack.last().pose()
+
+                        buffer.vertex(lastPose, 0f, 0f, 0f).color(1f, 0f, 0f, 0.75f).endVertex()
+                        buffer.vertex(lastPose, 0f, 1f, 0f).color(0f, 1f, 0f, 0.75f).endVertex()
+                        buffer.vertex(lastPose, 1f, 1f, 0f).color(1f, 1f, 1f, 0.75f).endVertex()
+                        buffer.vertex(lastPose, 1f, 0f, 0f).color(1f, 1f, 1f, 0.75f).endVertex()
+
+//                        buffer.vertex(lastPose.pose(),1f,0f,0f).color(1f,1f,1f,1f).endVertex()
+//                        buffer.vertex(lastPose.pose(),1f,1f,0f).color(1f,1f,1f,1f).endVertex()
+//                        buffer.vertex(lastPose.pose(),0f,1f,0f).color(1f,1f,1f,1f).endVertex()
+//                        buffer.vertex(lastPose.pose(),0f,0f,0f).color(1f,0f,0f,1f).endVertex()
+                        stack.popPose()
+                    }
+                }
+            }
+        }
+        RenderSystem.disableDepthTest()
+        bufferSource.endBatch(RenderTypeHolder.renderType)
+    }
+}
+```
+
+可以看到,还是简洁了不少  
+请无视最后的`RenderSystem.disableDepthTest()`,为什么有这个我折叠了,正常是不需要的
+
+<details>
+<summary>为什么呢</summary>
+
+```java
+public static class DepthTestStateShard extends RenderStateShard {
+    private final String functionName;
+
+    public DepthTestStateShard(String pFunctionName, int pDepthFunc) {
+        super("depth_test",/*setupState*/ () -> {
+            if (pDepthFunc != GL_ALWAYS) {
+                RenderSystem.enableDepthTest();
+                RenderSystem.depthFunc(pDepthFunc);
+            }
+
+        }, /*clearState*/ () -> {
+            if (pDepthFunc != GL_ALWAYS) {
+                RenderSystem.disableDepthTest();
+                RenderSystem.depthFunc(GL_LEQUAL);
+            }
+        });
+        this.functionName = pFunctionName;
+    }
+
+    public String toString() {
+       return this.name + "[" + this.functionName + "]";
+    }
+}
+
+protected static final RenderStateShard.DepthTestStateShard NO_DEPTH_TEST 
+    = new RenderStateShard.DepthTestStateShard("always", GL_ALWAYS);
+
+```
+可以看到,对于`NO_DEPTH_TEST`,实际上就是...什么都不做  
+这就导致`DisableDepthTest`的调用,完全取决于使用`RenderType`或者在手动调用`enable`后再次`disable`  
+然后在笔者所处的环境中...mj没有配对的调用`disable`,只能手动添加
+
+</details>

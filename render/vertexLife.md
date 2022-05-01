@@ -416,3 +416,10 @@ void ensureStorage(int pNeededIndexCount) {
 `this.indexCount`为该`AutoStorageIndexBuffer`已缓存的`index`数据,只有当有必要,即当前需要提交的  
 `Buffer Object(顶点数据)`所需的`index`数量大于已缓存的数量前,才会重新生成,刷新,提交  
 所以函数名起`ensure`还算比较恰当?
+
+>[!note]
+> 如果你想要手动验证其中的内容  
+> 注意数据访问的方式  
+> 例如`(0 .. 100 step 2).map { bytebuffer.getShort(it) }`  
+> 注意写入的数据类型和读取方式  
+> 可查看`AutoStorageIndexBuffer#intConsumer`  
