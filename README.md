@@ -3,11 +3,14 @@
 
 Cobalt是一套Minecraft的渲染相关的说明文档
 
-[//]: # (github docs仓库:[![github仓库]&#40;https://shields.io/badge/github-Cobalt-blue?logo=Github&style=for-the-badge&#41;]&#40;https://github.com/zomb-676/Cobalt&#41;  )
-github
+github 示例代码仓库:[![github仓库](https://shields.io/badge/github-Cobalt-blue?logo=Github&style=for-the-badge)](https://github.com/zomb-676/Cobalt)  
+github docs仓库:[![github仓库](https://shields.io/badge/github-CobaltDocs-blue?logo=Github&style=for-the-badge)](https://github.com/zomb-676/CobaltDocs)  
 工程仓库:[![github仓库](https://shields.io/badge/github-Cobalt-blue?logo=Github&style=for-the-badge)](https://github.com/zomb-676/CobaltDocs)  
 discord服务器[![discord](https://shields.io/badge/DiscordServer-Rua-purple?logo=Discord&style=for-the-badge)](https://discord.gg/V4jmpZ2rMX)  
-邮箱[![outlook](https://shields.io/badge/outlook-zomb_676-pink?logo=MicrosoftOutlook&style=for-the-badge)](mailto:zomb_676@outlook.com)
+邮箱[![outlook](https://shields.io/badge/outlook-zomb_676-pink?logo=MicrosoftOutlook&style=for-the-badge)](mailto:zomb_676@outlook.com)  
+开黑啦[邀请链接](https://kaihei.co/aesHF6)
+
+有任何问题请在本项目的[问题追踪器](https://github.com/zomb-676/CobaltDocs/issues)指出  
 
 > [!attention]
 > 黑幕内的内容带有强烈的个人观点,请选择观看
