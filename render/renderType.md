@@ -116,8 +116,9 @@ WriteMaskStateShard  -->  RenderStateShard
 利用`RenderType`简化上次的代码
 
 ```kotlin
+@Suppress("unused")
 @Mod.EventBusSubscriber(Dist.CLIENT)
-object TryRenderType {
+object VertexFillByRenderType {
 
     private class RenderTypeHolder : RenderType("any", DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 256, false, false, {}, {}) {
         companion object {
@@ -142,40 +143,7 @@ object TryRenderType {
         }
         val bufferSource = Minecraft.getInstance().renderBuffers().bufferSource()
         val buffer = bufferSource.getBuffer(RenderTypeHolder.renderType)
-        val stack = event.poseStack
-        val cameraPos = Minecraft.getInstance().gameRenderer.mainCamera.position
-        stack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z)
-        val playerPos = Minecraft.getInstance().player!!.position()
-        val x = floor(playerPos.x).toInt()
-        val y = floor(playerPos.y).toInt()
-        val z = floor(playerPos.z).toInt()
-        val pos = BlockPos.MutableBlockPos()
-        for (dx in (x - 15)..(x + 15)) {
-            pos.x = dx
-            for (dy in (y - 15)..(y + 15)) {
-                pos.y = dy
-                for (dz in (z - 15)..(z + 15)) {
-                    pos.z = dz
-                    val blockState = Minecraft.getInstance().level!!.getBlockState(pos)
-                    if (blockState.block == Blocks.ANVIL) {
-                        stack.pushPose()
-                        stack.translate(pos.x.toDouble(), pos.y.toDouble(), pos.z.toDouble())
-                        val lastPose = stack.last().pose()
-
-                        buffer.vertex(lastPose, 0f, 0f, 0f).color(1f, 0f, 0f, 0.75f).endVertex()
-                        buffer.vertex(lastPose, 0f, 1f, 0f).color(0f, 1f, 0f, 0.75f).endVertex()
-                        buffer.vertex(lastPose, 1f, 1f, 0f).color(1f, 1f, 1f, 0.75f).endVertex()
-                        buffer.vertex(lastPose, 1f, 0f, 0f).color(1f, 1f, 1f, 0.75f).endVertex()
-
-//                        buffer.vertex(lastPose.pose(),1f,0f,0f).color(1f,1f,1f,1f).endVertex()
-//                        buffer.vertex(lastPose.pose(),1f,1f,0f).color(1f,1f,1f,1f).endVertex()
-//                        buffer.vertex(lastPose.pose(),0f,1f,0f).color(1f,1f,1f,1f).endVertex()
-//                        buffer.vertex(lastPose.pose(),0f,0f,0f).color(1f,0f,0f,1f).endVertex()
-                        stack.popPose()
-                    }
-                }
-            }
-        }
+        dataFill(event,buffer,Blocks.ANVIL)
         RenderSystem.disableDepthTest()
         bufferSource.endBatch(RenderTypeHolder.renderType)
     }
@@ -188,7 +156,7 @@ object TryRenderType {
 > 通过继承父类来暴露`protected`  
 > 所以`holder`并不会被构造  
 
-可以看到,还是简洁了不少  
+可以看到调用处,还是简洁了不少  
 请无视最后的`RenderSystem.disableDepthTest()`,为什么有这个我折叠了,正常是不需要的
 
 <details>
@@ -323,8 +291,17 @@ public interface MultiBufferSource {
 
 ## special? not special
 
-相信各位都见过来自[TheGreyGhost](https://greyminecraftcoder.blogspot.com/2020/04/block-rendering-1144.html)的这张图  
+
+相信各位都见过  
+
+<!-- tabs:start -->
+#### **TheGreyGhost**
 ![chunkBufferLayers](../picture/renderType/chunkBufferLayers.png)  
+来自[TheGreyGhost](https://greyminecraftcoder.blogspot.com/2020/04/block-rendering-1144.html)  
+#### **3T**
+![chunkBufferLayers](../picture/renderType/blockRenderType.png)
+<!-- tabs:end -->
+  
 并且配合`ItemBlockRenderTypes#setRenderLayer`或者层叫做`RenderTypeLookup#setRenderLayer`的方法为流体/方块设置`RenderLayer`?  
 但是,这里的参数确实是`RenderType`啊,这几个并没有什么特殊的啊  
 确实如此,但真正特殊的其实在于它们被渲染的代码块  
@@ -337,8 +314,19 @@ public static List<RenderType> chunkBufferLayers() {
 	return ImmutableList.of(solid(), cutoutMipped(), cutout(), translucent(), tripwire());
 }
 ```
+<details>
+<summary>关于tripwire</summary>
 
-`tripwire()`这个在以前是没有的  
+好像在以前是没有的  
+在尚未有`RenderType`的的1.12.2,前面四个都放在一个叫做`BlockRenderLayer`的枚举类中  
+此时,tripwire方块的的renderLayer为`BlockRenderLayer.TRANSLUCENT;`  
+在1.16.5,mcp表这个方法叫做`getBlockRenderTypes`就存在`tripwire`  
+而forge的`multiLayerModel`中最早提早有相关信息的在[这里](https://github.com/MinecraftForge/MinecraftForge/blob/ce3d8b40cf37924caf1708cdde6842ae6fdcee31/src/main/java/net/minecraftforge/client/model/MultiLayerModel.java#L247)  
+里面就已经包含了有关内容,但那次提交所处时间位于1.16.4与1.16.5之间  
+在1.18.1,对`translucent`和`tripwire`进行对比,可以发现除了`bufferSize`,`outputState`,`vsh`有非常小的差别外,一模一样  
+
+</details>
+
 可以看到,它们与区块的渲染有密切相关
 
 

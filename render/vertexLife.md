@@ -101,11 +101,15 @@ DefaultedVertexConsumer  ..>  VertexConsumer
 
 ## example
 
-```kotlin
-@EventBusSubscriber(Dist.CLIENT)
-object VertexFill {
+<!-- tabs:start -->
+#### **by buffer**
 
-    private val buffer = BufferBuilder(256)
+```kotlin
+@Suppress("unused")
+@EventBusSubscriber(Dist.CLIENT)
+object VertexFillByBuffer {
+
+    private val buffer = BufferBuilder(/*pCapacity*/ 256)
 
     @SubscribeEvent
     @JvmStatic
@@ -114,51 +118,90 @@ object VertexFill {
             return
         }
         buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR)
-        val stack = event.poseStack
-        val cameraPos = Minecraft.getInstance().gameRenderer.mainCamera.position
-        stack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z)
-        val playerPos = Minecraft.getInstance().player!!.position()
-        val x = floor(playerPos.x).toInt()
-        val y = floor(playerPos.y).toInt()
-        val z = floor(playerPos.z).toInt()
-        val pos = BlockPos.MutableBlockPos()
         RenderSystem.setShader(GameRenderer::getPositionColorShader)
         RenderSystem.disableDepthTest()
         RenderSystem.enableBlend()
         RenderSystem.defaultBlendFunc()
-        for (dx in (x - 15)..(x + 15)) {
-            pos.x = dx
-            for (dy in (y - 15)..(y + 15)) {
-                pos.y = dy
-                for (dz in (z - 15)..(z + 15)) {
-                    pos.z = dz
-                    val blockState = Minecraft.getInstance().level!!.getBlockState(pos)
-                    if (blockState.block == Blocks.DIAMOND_BLOCK){
-                        stack.pushPose()
-                        stack.translate(pos.x.toDouble(),pos.y.toDouble(),pos.z.toDouble())
-                        val lastPose = stack.last().pose()
-
-                        buffer.vertex(lastPose,0f,0f,0f).color(1f,0f,0f,0.75f).endVertex()
-                        buffer.vertex(lastPose,0f,1f,0f).color(0f,1f,0f,0.75f).endVertex()
-                        buffer.vertex(lastPose,1f,1f,0f).color(1f,1f,1f,0.75f).endVertex()
-                        buffer.vertex(lastPose,1f,0f,0f).color(1f,1f,1f,0.75f).endVertex()
-
-//                        buffer.vertex(lastPose.pose(),1f,0f,0f).color(1f,1f,1f,1f).endVertex()
-//                        buffer.vertex(lastPose.pose(),1f,1f,0f).color(1f,1f,1f,1f).endVertex()
-//                        buffer.vertex(lastPose.pose(),0f,1f,0f).color(1f,1f,1f,1f).endVertex()
-//                        buffer.vertex(lastPose.pose(),0f,0f,0f).color(1f,0f,0f,1f).endVertex()
-                        stack.popPose()
-                    }
-                }
-            }
-        }
+        dataFill(event, buffer, Blocks.DIAMOND_BLOCK)
         buffer.end()
         BufferUploader.end(buffer)
         RenderSystem.enableDepthTest()
         RenderSystem.disableBlend()
     }
+    
 }
 ```
+
+#### **by tesselator**
+
+```kotlin
+@Suppress("unused")
+@EventBusSubscriber(Dist.CLIENT)
+object VertexFillByTesselator {
+    @SubscribeEvent
+    @JvmStatic
+    fun renderLevelLastEvent(event: RenderLevelLastEvent) {
+        if (Minecraft.getInstance().player!!.mainHandItem.item != Items.IRON_BLOCK) {
+            return
+        }
+        val tesselator = Tesselator.getInstance()
+        val buffer = tesselator.builder
+        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR)
+        RenderSystem.setShader(GameRenderer::getPositionColorShader)
+        RenderSystem.disableDepthTest()
+        RenderSystem.enableBlend()
+        RenderSystem.defaultBlendFunc()
+        dataFill(event, buffer, Blocks.IRON_BLOCK)
+        tesselator.end()
+        RenderSystem.enableDepthTest()
+        RenderSystem.disableBlend()
+    }
+}
+```
+
+#### **dataFill fun**
+
+```kotlin
+fun dataFill(event: RenderLevelLastEvent, buffer: VertexConsumer,block:Block) {
+    val stack = event.poseStack
+    val cameraPos = Minecraft.getInstance().gameRenderer.mainCamera.position
+    stack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z)
+    val playerPos = Minecraft.getInstance().player!!.position()
+    val x = floor(playerPos.x).toInt()
+    val y = floor(playerPos.y).toInt()
+    val z = floor(playerPos.z).toInt()
+    val pos = BlockPos.MutableBlockPos()
+    for (dx in (x - 15)..(x + 15)) {
+        pos.x = dx
+        for (dy in (y - 15)..(y + 15)) {
+            pos.y = dy
+            for (dz in (z - 15)..(z + 15)) {
+                pos.z = dz
+                val blockState = Minecraft.getInstance().level!!.getBlockState(pos)
+                if (blockState.block == block) {
+                    stack.pushPose()
+                    stack.translate(pos.x.toDouble(), pos.y.toDouble(), pos.z.toDouble())
+                    val lastPose = stack.last().pose()
+
+                    buffer.vertex(lastPose, 0f, 0f, 0f).color(1f, 0f, 0f, 0.75f).endVertex()
+                    buffer.vertex(lastPose, 0f, 1f, 0f).color(0f, 1f, 0f, 0.75f).endVertex()
+                    buffer.vertex(lastPose, 1f, 1f, 0f).color(1f, 1f, 1f, 0.75f).endVertex()
+                    buffer.vertex(lastPose, 1f, 0f, 0f).color(1f, 1f, 1f, 0.75f).endVertex()
+
+                    //                        buffer.vertex(lastPose.pose(),1f,0f,0f).color(1f,1f,1f,1f).endVertex()
+                    //                        buffer.vertex(lastPose.pose(),1f,1f,0f).color(1f,1f,1f,1f).endVertex()
+                    //                        buffer.vertex(lastPose.pose(),0f,1f,0f).color(1f,1f,1f,1f).endVertex()
+                    //                        buffer.vertex(lastPose.pose(),0f,0f,0f).color(1f,0f,0f,1f).endVertex()
+                    stack.popPose()
+                }
+            }
+        }
+    }
+}
+```
+
+<!-- tabs:end -->
+
 
 ## VertexFormat.Mode
 
