@@ -166,10 +166,10 @@ fun dataFill(event: RenderLevelLastEvent, buffer: VertexConsumer,block:Block) {
     val stack = event.poseStack
     val cameraPos = Minecraft.getInstance().gameRenderer.mainCamera.position
     stack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z)
-    val playerPos = Minecraft.getInstance().player!!.position()
-    val x = floor(playerPos.x).toInt()
-    val y = floor(playerPos.y).toInt()
-    val z = floor(playerPos.z).toInt()
+    val playerPos = Minecraft.getInstance().player!!.blockPosition()
+    val x = playerPos.x
+    val y = playerPos.y
+    val z = playerPos.z
     val pos = BlockPos.MutableBlockPos()
     for (dx in (x - 15)..(x + 15)) {
         pos.x = dx

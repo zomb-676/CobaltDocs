@@ -289,8 +289,95 @@ public interface MultiBufferSource {
 
 </details>
 
-## special? not special
+至于`endBatch`则会调用`RenderType`内的如下方法  
+`setupState`->`BufferUploader.end(buffer)`->`clearState`  
 
+```java
+public void end(BufferBuilder pBuffer, int pCameraX, int pCameraY, int pCameraZ) {
+   if (pBuffer.building()) {
+      if (this.sortOnUpload) {
+         pBuffer.setQuadSortOrigin((float)pCameraX, (float)pCameraY, (float)pCameraZ);
+      }
+
+      pBuffer.end();
+      this.setupRenderState();
+      BufferUploader.end(pBuffer);
+      this.clearRenderState();
+   }
+}
+```
+
+## blockEntityRender
+
+大致过程如下,摘自`LevelRender#renderLevel`  
+
+<!-- tabs:start -->
+#### **BlockEntity in frustum**
+```java
+for(LevelRenderer.RenderChunkInfo levelrenderer$renderchunkinfo : this.renderChunksInFrustum) {
+   List<BlockEntity> list = levelrenderer$renderchunkinfo.chunk.getCompiledChunk().getRenderableBlockEntities();
+   if (!list.isEmpty()) {
+      for(BlockEntity blockentity1 : list) {
+         if(!frustum.isVisible(blockentity1.getRenderBoundingBox())) continue;
+         BlockPos blockpos4 = blockentity1.getBlockPos();
+         MultiBufferSource multibuffersource1 = multibuffersource$buffersource;
+         pPoseStack.pushPose();
+         pPoseStack.translate((double)blockpos4.getX() - d0, (double)blockpos4.getY() - d1, (double)blockpos4.getZ() - d2);
+         SortedSet<BlockDestructionProgress> sortedset = this.destructionProgress.get(blockpos4.asLong());
+         if (sortedset != null && !sortedset.isEmpty()) {
+            int j1 = sortedset.last().getProgress();
+            if (j1 >= 0) {
+               PoseStack.Pose posestack$pose1 = pPoseStack.last();
+               VertexConsumer vertexconsumer = new SheetedDecalTextureGenerator(this.renderBuffers.crumblingBufferSource().getBuffer(ModelBakery.DESTROY_TYPES.get(j1)), posestack$pose1.pose(), posestack$pose1.normal());
+               multibuffersource1 = (p_194349_) -> {
+                  VertexConsumer vertexconsumer3 = multibuffersource$buffersource.getBuffer(p_194349_);
+                  return p_194349_.affectsCrumbling() ? VertexMultiConsumer.create(vertexconsumer, vertexconsumer3) : vertexconsumer3;
+               };
+            }
+         }
+
+         this.blockEntityRenderDispatcher.render(blockentity1, pPartialTick, pPoseStack, multibuffersource1); //!!!
+         pPoseStack.popPose();
+      }
+   }
+}
+```
+#### **Global BlockEntity**
+```java
+synchronized(this.globalBlockEntities) {
+   for(BlockEntity blockentity : this.globalBlockEntities) {
+      if(!frustum.isVisible(blockentity.getRenderBoundingBox())) continue;
+      BlockPos blockpos3 = blockentity.getBlockPos();
+      pPoseStack.pushPose();
+      pPoseStack.translate((double)blockpos3.getX() - d0, (double)blockpos3.getY() - d1, (double)blockpos3.getZ() - d2);
+      this.blockEntityRenderDispatcher.render(blockentity, pPartialTick, pPoseStack, multibuffersource$buffersource); //!!
+      pPoseStack.popPose();
+   }
+}
+```
+#### **batch render**
+```java
+this.checkPoseStack(pPoseStack);
+multibuffersource$buffersource.endBatch(RenderType.solid()); //?
+multibuffersource$buffersource.endBatch(RenderType.endPortal());
+multibuffersource$buffersource.endBatch(RenderType.endGateway());
+multibuffersource$buffersource.endBatch(Sheets.solidBlockSheet());
+multibuffersource$buffersource.endBatch(Sheets.cutoutBlockSheet());
+multibuffersource$buffersource.endBatch(Sheets.bedSheet());
+multibuffersource$buffersource.endBatch(Sheets.shulkerBoxSheet());
+multibuffersource$buffersource.endBatch(Sheets.signSheet());
+multibuffersource$buffersource.endBatch(Sheets.chestSheet());
+```
+
+一种`RenderType`被`endBatch`应该仅代表在此之后,本帧不会在使用??
+
+<!-- tabs:end -->
+
+## normal block
+
+---
+
+### special? not special
 
 相信各位都见过  
 
@@ -329,5 +416,141 @@ public static List<RenderType> chunkBufferLayers() {
 
 可以看到,它们与区块的渲染有密切相关
 
+### concrete
 
-wip...
+仅列出与提交数据有关的部分
+
+```java
+profilerfiller.popPush("terrain_setup");
+this.setupRender(pCamera, frustum, pHasCapturedFrustrum, this.minecraft.player.isSpectator());
+profilerfiller.popPush("compilechunks");
+this.compileChunks(pCamera);
+profilerfiller.popPush("terrain");
+this.renderChunkLayer(RenderType.solid(), pPoseStack, cameraX, camerY, cameraZ, pProjectionMatrix);
+this.minecraft.getModelManager().getAtlas(TextureAtlas.LOCATION_BLOCKS).setBlurMipmap(false, this.minecraft.options.mipmapLevels > 0); // FORGE: fix flickering leaves when mods mess up the blurMipmap settings
+this.renderChunkLayer(RenderType.cutoutMipped(), pPoseStack, cameraX, camerY, cameraZ, pProjectionMatrix);
+this.minecraft.getModelManager().getAtlas(TextureAtlas.LOCATION_BLOCKS).restoreLastBlurMipmap();
+this.renderChunkLayer(RenderType.cutout(), pPoseStack, cameraX, camerY, cameraZ, pProjectionMatrix);
+```
+
+`this.renderChunkLayer(RenderType.solid(), pPoseStack, d0, d1, d2, pProjectionMatrix);`  
+这是最终调用`drawCall`的部分  
+
+最关键的一步在于`this.compileChunks(pCamera);`
+
+<details>
+<summary>相关内容,可不看</summary>
+
+罗列一车与渲染有关的chunk类  
+`static`前缀表明这是一个静态内部类,构造时,无需外部类,内部不含外部类引用
+
+| class name                                 | field/method                                                  | description                             |
+|--------------------------------------------|---------------------------------------------------------------|-----------------------------------------|
+| RenderRegionCache                          | Long2ObjectMap<RenderRegionCache.ChunkInfo> chunkInfoCache    | long:ChunkPos.asLong()                  |
+| static RenderRegionCache.ChunkInfo         | LevelChunk chunk                                              | map entry?                              |
+|                                            | RenderChunk renderChunk                                       |                                         |
+| RenderChunk                                | Map<BlockPos, BlockEntity> blockEntities                      |                                         |
+|                                            | List<PalettedContainer<BlockState>> sections                  |                                         |
+|                                            | boolean debug                                                 |                                         |
+|                                            | LevelChunk wrapped                                            |                                         |
+|                                            | BlockEntity getBlockEntity(BlockPos)                          |                                         |
+|                                            | BlockState getBlockState(BlockPos)                            |                                         |
+| RenderChunkDispatcher.RenderChunk          | static final int SIZE = 16                                    |                                         |
+|                                            | final int index                                               |                                         |
+|                                            | AtomicInteger initialCompilationCancelCount                   |                                         |
+|                                            | ChunkRenderDispatcher.RenderChunk.RebuildTask lastRebuildTask |                                         |
+|                                            | ChunkRenderDispatcher.RenderChunk.ResortTransparencyTask      |                                         |
+|                                            | Set<BlockEntity> globalBlockEntities                          |                                         |
+|                                            | Map<RenderType, VertexBuffer> buffers                         |                                         |
+| static RenderChunkDispatcher.CompiledChunk | ChunkRenderDispatcher.CompiledChunk UNCOMPILED                |                                         |
+|                                            | Set<RenderType> hasBlocks                                     |                                         |
+|                                            | Set<RenderType> hasLayer                                      |                                         |
+|                                            | boolean isCompletelyEmpty                                     |                                         |
+|                                            | List<BlockEntity> renderableBlockEntities                     |                                         |
+|                                            | BufferBuilder.SortState transparencyState                     |                                         |
+| static LevelRender.RenderInfoMap           | LevelRenderer.RenderChunkInfo[] infos                         | ChunkRenderDispatcher.RenderChunk.index |
+| static LevelRender.RenderChunkStorage      | LevelRenderer.RenderInfoMap renderInfoMap                     |                                         |
+|                                            | LinkedHashSet<LevelRenderer.RenderChunkInfo> renderChunks     |                                         |
+| static LevelRender.RenderChunkInfo         | ChunkRenderDispatcher.RenderChunk chunk                       |                                         |
+|                                            | byte sourceDirections                                         |                                         |
+|                                            | byte directions                                               |                                         |
+|                                            | int step                                                      |                                         |
+
+```java
+private void compileChunks(Camera camera) {
+   this.minecraft.getProfiler().push("populate_chunks_to_compile");
+   RenderRegionCache renderregioncache = new RenderRegionCache();
+   BlockPos blockpos = camera.getBlockPosition();
+   List<ChunkRenderDispatcher.RenderChunk> list = Lists.newArrayList();
+
+   for(LevelRenderer.RenderChunkInfo levelrenderer$renderchunkinfo : this.renderChunksInFrustum) {
+      ChunkRenderDispatcher.RenderChunk chunkrenderdispatcher$renderchunk = levelrenderer$renderchunkinfo.chunk;
+      ChunkPos chunkpos = new ChunkPos(chunkrenderdispatcher$renderchunk.getOrigin());
+      if (chunkrenderdispatcher$renderchunk.isDirty() && this.level.getChunk(chunkpos.x, chunkpos.z).isClientLightReady()) {
+         boolean flag = false;
+         if (this.minecraft.options.prioritizeChunkUpdates != PrioritizeChunkUpdates.NEARBY) {
+            if (this.minecraft.options.prioritizeChunkUpdates == PrioritizeChunkUpdates.PLAYER_AFFECTED) {
+               flag = chunkrenderdispatcher$renderchunk.isDirtyFromPlayer();
+            }
+         } else {
+            BlockPos blockpos1 = chunkrenderdispatcher$renderchunk.getOrigin().offset(8, 8, 8);
+            flag = !net.minecraftforge.common.ForgeConfig.CLIENT.alwaysSetupTerrainOffThread.get() && (blockpos1.distSqr(blockpos) < 768.0D || chunkrenderdispatcher$renderchunk.isDirtyFromPlayer()); // the target is the else block below, so invert the forge addition to get there early
+         }
+
+         if (flag) {
+            this.minecraft.getProfiler().push("build_near_sync");
+            this.chunkRenderDispatcher.rebuildChunkSync(chunkrenderdispatcher$renderchunk, renderregioncache);
+            chunkrenderdispatcher$renderchunk.setNotDirty();
+            this.minecraft.getProfiler().pop();
+         } else {
+            list.add(chunkrenderdispatcher$renderchunk);
+         }
+      }
+   }
+
+   this.minecraft.getProfiler().popPush("upload");
+   this.chunkRenderDispatcher.uploadAllPendingUploads();
+   this.minecraft.getProfiler().popPush("schedule_async_compile");
+
+   for(ChunkRenderDispatcher.RenderChunk chunkrenderdispatcher$renderchunk1 : list) {
+      chunkrenderdispatcher$renderchunk1.rebuildChunkAsync(this.chunkRenderDispatcher, renderregioncache);
+      chunkrenderdispatcher$renderchunk1.setNotDirty();
+   }
+
+   this.minecraft.getProfiler().pop();
+}
+```
+
+`this.renderChunksInFrustum`的设置在`setupRender`内调用的`applyFrustum`
+
+</details>
+
+
+其大致内容,是根据当前区块渲染的策略,同步或异步的将`ChunkRenderDispatcher.RenderChunk`进行build的操作  
+最终它们都会调用到`ChunkCompileTask#doTask`  
+它有两个实现,一个是`RebuildTask`另一个是`ResortTransparencyTask`,抛去其所有线程调度逻辑  
+
+对于前者,最核心的的代码在于
+
+```java
+ChunkRenderDispatcher.CompiledChunk compiledChunk = new ChunkRenderDispatcher.CompiledChunk();
+Set<BlockEntity> set = this.compile(cameraX, cameraY, cameraZ, compiledChunk, pBuffers);
+RenderChunk.this.updateGlobalBlockEntities(set);
+
+List<CompletableFuture<Void>> list = Lists.newArrayList();
+compiledChunk.hasLayer.forEach((item : RenderType) -> {
+   list.add(ChunkRenderDispatcher.this.uploadChunkLayer(pBuffers.builder(item), RenderChunk.this.getBuffer(item)));
+});
+```
+
+在`compile`函数内,会对范围内所有的`BlockPos`逐个判定  
+并且根据对应坐标内的方块/流体/BlockEntity做出不同的渲染操作  
+调用`BlockRenderDispatcher#renderBatched/renderLiquid`,分别对应了`ModelBlockRenderer`与`LiquidBlockRenderer`内的函数  
+同时设置传入的`CompiledChunk`的一系列参数  
+而返回的`Set<BlockEntity>`则被同步进`ChunkRenderDispatcher.globalBlockEntities`  
+同时,如果内部有`translucent`的方块,则会设置`QuadSortOrigin`
+
+而后面的foreach则分别将`BufferBuilder`内的数据上传  
+
+对于后者,它仅在调用`renderChunkLayer`传入的`RenderType`为`translucent`时被立刻执行  
+用于重新设置`BufferBuilder`的`QuadSortOrigin`
