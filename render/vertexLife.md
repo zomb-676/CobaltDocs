@@ -482,3 +482,39 @@ void ensureStorage(int pNeededIndexCount) {
 > 例如`(0 .. 100 step 2).map { bytebuffer.getShort(it) }`  
 > 注意写入的数据类型和读取方式  
 > 可查看`AutoStorageIndexBuffer#intConsumer`  
+
+## sort
+
+对于Sorted的`BufferBuilder`,自身在调用`end`时,还会调用`putSortedQuadIndices`  
+
+```java
+private void putSortedQuadIndices(VertexFormat.IndexType pIndexType) {
+   float[] afloat = new float[this.sortingPoints.length];
+   int[] aint = new int[this.sortingPoints.length];
+
+   for(int i = 0; i < this.sortingPoints.length; aint[i] = i++) {
+      float f = this.sortingPoints[i].x() - this.sortX;
+      float f1 = this.sortingPoints[i].y() - this.sortY;
+      float f2 = this.sortingPoints[i].z() - this.sortZ;
+      afloat[i] = f * f + f1 * f1 + f2 * f2;
+   }
+
+   IntArrays.mergeSort(aint, (p_166784_, p_166785_) -> {
+      return Floats.compare(afloat[p_166785_], afloat[p_166784_]);
+   });
+   IntConsumer intconsumer = this.intConsumer(pIndexType);
+   //intConsumer是对自身持有的ByteBuffer的包装,与上文的index相似
+   this.buffer.position(this.nextElementByte);
+
+   for(int j : aint) {
+      intconsumer.accept(j * this.mode.primitiveStride + 0);
+      intconsumer.accept(j * this.mode.primitiveStride + 1);
+      intconsumer.accept(j * this.mode.primitiveStride + 2);
+      intconsumer.accept(j * this.mode.primitiveStride + 2);
+      intconsumer.accept(j * this.mode.primitiveStride + 3);
+      intconsumer.accept(j * this.mode.primitiveStride + 0);
+   }
+
+}
+```
+没错,`index`数据与`vertex`数据写入了同一个`ByteBuffer`

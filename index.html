@@ -11,6 +11,7 @@
     <script src="//cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <!--prism-heme-->
     <link href="https://cdn.jsdelivr.net/npm/prismjs@1.x/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <link href="plugin/prism-treeview/prism-treeview.css" rel="stylesheet">
     <title>Cobalt</title>
 </head>
 <body>
@@ -23,6 +24,8 @@
     mermaid.initialize({startOnLoad: false});
 
     window.$docsify = {
+        repo: "https://github.com/zomb-676/CobaltDocs",
+        executeScript: true,
         name: "Cobalt",
         loadSidebar: true,
         subMaxLevel: 5,
@@ -79,6 +82,8 @@
 <!--<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/dark.css">-->
 <!--emoji-->
 <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
+<!--execute-external-script-->
+<script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/external-script.min.js"></script>
 <!--zoom-image-->
 <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
 <!--docsify-edit-on-github-->
@@ -103,6 +108,8 @@
 <script src="https://cdn.jsdelivr.net/npm/docsify-progress@latest/dist/progress.min.js"></script>
 <!--select-->
 <script src="https://cdn.jsdelivr.net/npm/docsify-select@1"></script>
+<!--pangu plugin-->
+<script src="//cdn.jsdelivr.net/npm/docsify-pangu/lib/pangu.min.js"></script>
 <!--prism-support-language-add-->
 <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-c.min.js"></script>
 <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-cpp.min.js"></script>
@@ -110,5 +117,7 @@
 <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-clike.min.js"></script>
 <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-java.min.js"></script>
 <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-glsl.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-glsl.min.js"></script>
+<script src="plugin/prism-treeview/prism-treeview.js"></script>
 </body>
 </html>

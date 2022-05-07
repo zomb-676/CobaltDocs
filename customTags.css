@@ -41,3 +41,7 @@ pre[v-pre],pre[v-pre] code{
 pre[v-pre] code{
     color: #ccc;
 }
+
+.token.treeview-part .entry-name:before {
+    filter: invert(75%) sepia(47%) saturate(0%) hue-rotate(153deg) brightness(102%) contrast(89%);
+}

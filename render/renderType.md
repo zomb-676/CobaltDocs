@@ -350,7 +350,8 @@ synchronized(this.globalBlockEntities) {
       BlockPos blockpos3 = blockentity.getBlockPos();
       pPoseStack.pushPose();
       pPoseStack.translate((double)blockpos3.getX() - d0, (double)blockpos3.getY() - d1, (double)blockpos3.getZ() - d2);
-      this.blockEntityRenderDispatcher.render(blockentity, pPartialTick, pPoseStack, multibuffersource$buffersource); //!!
+      this.blockEntityRenderDispatcher.render(blockentity, pPartialTick, pPoseStack, multibuffersource$buffersource); 
+      //!! 这里就会调用我们写的BlockEntityRender内的render方法
       pPoseStack.popPose();
    }
 }
