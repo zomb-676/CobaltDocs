@@ -43,7 +43,7 @@ private val whetherIndicator = ITEM.register("weather_indicator") { Item(Item.Pr
 
 ![empty](../picture/itemModel/empty.png)
 
-# Item overrides
+## Item overrides
 
 天气指示器,仅有一种样式肯定是不够的,为此,我们需要借助如下机制  
 原版提供了一种名为`overrides`的机制,可以通过一定的上下文,从有限数目的模型中指定一个进行渲染  
@@ -133,10 +133,12 @@ resources/
 ```
 
 效果如下
-![weather_indicator](../picture/itemModel/weather_indicator.gif)
+![weather_indicator](../picture/itemModel/weather_indicator.gif)  
 
 逻辑如下
-![overrideExplanation](../picture/itemModel/overrideExplanation.png)
+![overrideExplanation](../picture/itemModel/overrideExplanation.png)  
+
+---
 
 ## colouring
 
