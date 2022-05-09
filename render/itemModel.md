@@ -2,9 +2,21 @@
 
 ---
 
+## ModelResourceLocation  
+
+在正式开始前,我们需要介绍一下`ModelResourceLocation`,继承自`ResourceLocation`,与之相比多了一个名为`variant`的字段  
+与`ResourceLocation`一样,同样拥有`namespace`和`path`字段  
+在这里,前者表示模型所处的`命名空间`,即`modID`,而后者则对应所属物品/方块的`registryName`  
+而`variant`对于物品,则为`inventory`  
+对于方块,则描述了其`BlockState`,若没有BlockState,则为空字符串  
+`toString`方法为`<namespace>:<registryName>#<variant>`  
+
+想要拿到`BlockState`对应的`ModelResourceLocation`可以通过`BlockModelShaper#stateToModelLocation`  
+物品则可通过`ModelResourceLocation(<item>.registryName, "inventory")`  
+
 ## Normal Model
 
-具体可以参见[wiki](https://minecraft.fandom.com/zh/wiki/%E6%A8%A1%E5%9E%8B#.E7.89.A9.E5.93.81.E6.A8.A1.E5.9E.8B)
+具体可以参见[wiki](https://minecraft.fandom.com/zh/wiki/%E6%A8%A1%E5%9E%8B#.E7.89.A9.E5.93.81.E6.A8.A1.E5.9E.8B)  
 
 如果你的物品想要使用方块的模型,例如`BlockItem`的物品模型  
 可以直接让`parent`指向方块对应的模型,格式:`<nameSpace>:block/<blockRegisterName>`,`<>`内为根据实际填写的字段  
@@ -570,14 +582,13 @@ class OverrideItemOverrides : ItemOverrides() {
 
 而要实现这一目标,给出两种办法  
 
-一种是让你的`json`模型,直接或间接继承自`builtin/entity`  
-原因如下  
+一种是让你的`json`模型,直接或间接继承自`builtin/entity`,原因如下  
 
 在`ModelBakery#loadBlockModel`中,如果你的物品模型,继承自`builtin/entity`  
 你的模型就会被读取为一个名为`BLOCK_ENTITY_MARKER`的`BlockModel/UnbakedModel`  
-在`BlockModel#bakeVanilla`,模型就会被`bake`为`BuiltInModel`,它的`isCustomRender()`返回就为`true`
+在`BlockModel#bakeVanilla`,模型就会被`bake`为`BuiltInModel`,它的`isCustomRender()`返回就为`true`  
 
-另一种就是在`ModelBakeEvent`中进行替换,同上文替换`overrides`一致
+另一种就是在`ModelBakeEvent`中进行替换,同上文替换`overrides`一致  
 
 当然你也可以和上文一样,直接定义一个`IModelLoader`走一个模型加载的全套流程  
 
