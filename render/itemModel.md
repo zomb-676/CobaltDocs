@@ -6,9 +6,13 @@
 
 具体可以参见[wiki](https://minecraft.fandom.com/zh/wiki/%E6%A8%A1%E5%9E%8B#.E7.89.A9.E5.93.81.E6.A8.A1.E5.9E.8B)
 
+如果你的物品想要使用方块的模型,例如`BlockItem`的物品模型  
+可以直接让`parent`指向方块对应的模型,格式:`<nameSpace>:block/<blockRegisterName>`,`<>`内为根据实际填写的字段  
+
 ### Layer Model
 
-
+mc自带的一种生成模型的方式,一多层的`Layer`叠加,为物品生成模型
+可以查看`forge`对原版的包装,在`ItemLayerModel`内
 
 ### 3D Json Model
 
@@ -556,7 +560,8 @@ class OverrideItemOverrides : ItemOverrides() {
 
 ## BlockEntityWithoutLevelRenderer 
 
-如果你需要更加动态的渲染物品,那么你需要的是名为`BlockEntityWithoutLevelRenderer`,曾叫做`ItemStackTileEntityRenderer`  
+如果你需要更加动态的渲染物品或者物品的渲染需要和使用了`BlockEntityRender`的方块渲染效果一致    
+那么你需要的是名为`BlockEntityWithoutLevelRenderer`,曾叫做`ItemStackTileEntityRenderer`  
 以代码的方式进行渲染,做到你想要的一切  
 
 首先要让MC知道你的物品模型需要`BlockEntityWithoutLevelRenderer`,这需要你的`BakedModel.isCustomRenderer`返回`true`  
