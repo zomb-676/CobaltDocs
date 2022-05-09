@@ -24,7 +24,7 @@
 ### Layer Model
 
 mc自带的一种生成模型的方式,一多层的`Layer`叠加,为物品生成模型
-可以查看`forge`对原版的包装,在`ItemLayerModel`内
+可以查看`forge`对原版的扩展,在`ItemLayerModel`内,扩展了原版仅支持4个`layer`至无限  
 
 ### 3D Json Model
 
@@ -67,7 +67,7 @@ private val whetherIndicator = ITEM.register("weather_indicator") { Item(Item.Pr
 调用`ItemProperties.register(Item pItem, ResourceLocation pName, ItemPropertyFunction pProperty)`  
 第一个参数`pItem`即需要绑定的物品  
 第二个参数`pName`指的是`overrides`的名称,原版的有[这些](https://minecraft.fandom.com/zh/wiki/%E6%A8%A1%E5%9E%8B#.E7.89.A9.E5.93.81.E6.A0.87.E7.AD.BE.E8.B0.93.E8.AF.8D)  
-第三个参数就是给定上下文,返回模型的地方了
+第三个参数就是给定上下文,返回模型的地方了  
 
 ```java
 @Deprecated

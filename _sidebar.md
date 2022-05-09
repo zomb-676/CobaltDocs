@@ -6,4 +6,5 @@
   - [Shader](render/shader.md)
   - [OverlayTexture](render/overlayTexture.md)
   - [ItemModel](render/itemModel.md)
+  - [BlockModel](render/blockModel.md)
 - [style](style.md)
