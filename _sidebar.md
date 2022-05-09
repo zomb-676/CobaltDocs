@@ -4,6 +4,6 @@
   - [Vertex Life](render/vertexLife.md) 
   - [RenderType](render/renderType.md)
   - [Shader](render/shader.md)
-  - [OverlayTexture](picture/itemModel/overlayTexture.md)
+  - [OverlayTexture](render/overlayTexture.md)
   - [ItemModel](render/itemModel.md)
 - [style](style.md)

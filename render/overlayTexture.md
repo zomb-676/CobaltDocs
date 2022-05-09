@@ -261,7 +261,7 @@ public static void renderWhiteSolidBlock(BlockState pBlockState, PoseStack pMatr
 ## example
 
 比如
-![tnt](../overlayTexture/tnt.gif)
+![tnt](../picture/overlayTexture/tnt.gif)
 
 不太恰当的示例代码
 ```java

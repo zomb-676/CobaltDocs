@@ -279,7 +279,7 @@ fun registerColorHandle(event: ColorHandlerEvent.Item) {
 <!-- tabs:end -->
 
 就可以看到  
-![normalChalk](normalChalk.png)
+![normalChalk](../picture/itemModel/normalChalk.png)
 
 ### infinite
 
