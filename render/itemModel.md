@@ -33,7 +33,7 @@ private val ITEM = DeferredRegister.create(ForgeRegistries.ITEMS, Cobalt.MOD_ID)
 private val whetherIndicator = ITEM.register("weather_indicator") { Item(Item.Properties().tab(creativeTab)) }
 ```
 
-上述文件结构中`weather_indicator.json`尚未编写,其他json模型,都由`blockbench`生成  
+上述文件结构中`weather_indicator.json`尚未编写,其他json模型,都由`blockBench`生成  
 ```json
 {
   "parent": "cobalt:item/weather_indicator_empty"
@@ -43,7 +43,7 @@ private val whetherIndicator = ITEM.register("weather_indicator") { Item(Item.Pr
 
 ![empty](../picture/itemModel/empty.png)
 
-## Item overrides
+## Item Property Override  
 
 天气指示器,仅有一种样式肯定是不够的,为此,我们需要借助如下机制  
 原版提供了一种名为`overrides`的机制,可以通过一定的上下文,从有限数目的模型中指定一个进行渲染  
@@ -236,7 +236,7 @@ public interface ItemColor {
 注册通过`ItemColors.register(ItemColor pItemColor, ItemLike... pItems)`  
 
 <!-- tabs:start -->
-#### **物品注册**
+#### **item register**
 
 ```kotlin
 val redChalk = ITEM.register("red_chalk") { Item(Item.Properties().tab(creativeTab)) }
@@ -266,6 +266,10 @@ fun registerColorHandle(event: ColorHandlerEvent.Item) {
 ![normalChalk](normalChalk.png)
 
 ### infinite
+
+有限颜色的粉笔肯定是不行的  
+从代码原理我们可以看出,染色的原理几乎就是将提交的顶点数据的颜色部分,乘以我们返回的`RGB`值  
+所以,我们可以不通过`TintIndex`,而通过`stackItem`的`nbt`数据获取信息  
 
 <!-- tabs:start -->
 #### **colorful chalk item**
@@ -400,5 +404,205 @@ class HexArgumentType(private val minimum: Int = Int.MIN_VALUE, private val maxi
 
 <!-- tabs:end -->
 
-就可以得到这样的效果
+再编写一个命令,用于给粉笔设置颜色  
+就可以得到这样的效果  
 ![colorfulChalk](../picture/itemModel/colorfulChalk.gif)
+
+## Overrides
+
+本节的`Overrides`与上文的`Item Property Overrides`不同,指的是`ItemOverrides`类  
+而上文的`Item Property Overrides`只是`ItemOverrides`的默认实现  
+
+`ItemOverrides`中有这样一个方法  
+`public BakedModel resolve(BakedModel pModel, ItemStack pStack, @Nullable ClientLevel pLevel, @Nullable LivingEntity pEntity, int pSeed)`  
+通过这个方法,我们就能在不同的时候返回不同的`BkaedModel`,不在限制在预先定义的范围内  
+
+这里给出两种办法,一种通过`ModelBakedEvent`直接替换并利用代理模式,包上一层  
+
+```kotlin
+fun setBakedModel(event: ModelBakeEvent){
+    val modelResourceLocation = ModelResourceLocation(AllRegisters.drawableChalk.get().registryName,"inventory")
+    val model = event.modelRegistry[modelResourceLocation]
+    event.modelRegistry[modelResourceLocation] = object : BakedModelWrapper<BakedModel>(model) {
+        override fun getOverrides(): ItemOverrides = OverrideItemOverrides()
+    }
+}
+```
+
+如果你不嫌麻烦的话,可以这样  
+
+<!-- tabs:start -->
+#### **OverrideModelLoader**
+
+```kotlin
+class OverrideModelLoader : IModelLoader<OverrideModelGeometry> {
+    companion object {
+        @JvmStatic
+        fun registerModelLoader(event: ModelRegistryEvent) {
+            ModelLoaderRegistry.registerLoader(
+                ResourceLocation(Cobalt.MOD_ID, "override_loader"),
+                OverrideModelLoader()
+            )
+        }
+    }
+
+    override fun onResourceManagerReload(pResourceManager: ResourceManager) {
+
+    }
+
+    override fun read(
+        deserializationContext: JsonDeserializationContext,
+        modelContents: JsonObject
+    ): OverrideModelGeometry {
+        modelContents.remove("loader")
+        val model = deserializationContext.deserialize<BlockModel>(modelContents, BlockModel::class.java)
+        return OverrideModelGeometry(model)
+    }
+
+}
+```
+
+#### **OverrideModelGeometry**
+
+```kotlin
+class OverrideModelGeometry(val delegate: BlockModel) : IModelGeometry<OverrideModelGeometry> {
+    override fun bake(
+        owner: IModelConfiguration?,
+        bakery: ModelBakery?,
+        spriteGetter: Function<Material, TextureAtlasSprite>?,
+        modelTransform: ModelState?,
+        overrides: ItemOverrides?,
+        modelLocation: ResourceLocation?
+    ): BakedModel {
+
+        val delegateModel = delegate.bake(
+            bakery, delegate, spriteGetter, modelTransform, modelLocation, delegate.guiLight.lightLikeBlock()
+        )
+        return OverrideWrappedBakedModel(delegateModel, OverrideItemOverrides())
+    }
+
+    override fun getTextures(
+        owner: IModelConfiguration?,
+        modelGetter: Function<ResourceLocation, UnbakedModel>?,
+        missingTextureErrors: MutableSet<Pair<String, String>>?
+    ): MutableCollection<Material> {
+        return delegate.getMaterials(modelGetter, missingTextureErrors)
+    }
+
+}
+```
+
+#### **OverrideWrappedBakedModel**
+
+```kotlin
+class OverrideWrappedBakedModel(originalModel: BakedModel, private val overrides: OverrideItemOverrides) :
+    BakedModelWrapper<BakedModel>(originalModel) {
+    override fun getOverrides(): ItemOverrides = overrides
+}
+```
+
+#### **OverrideItemOverrides**
+
+```kotlin
+class OverrideItemOverrides : ItemOverrides() {
+
+    companion object {
+        val cache = mutableListOf<BakedModel>()
+    }
+
+    override fun resolve(
+        pModel: BakedModel,
+        pStack: ItemStack,
+        pLevel: ClientLevel?,
+        pEntity: LivingEntity?,
+        pSeed: Int
+    ): BakedModel? {
+        val item = pStack.item as DrawableChalk
+        val blockState = item.getBlockState(pStack)
+        return if (blockState!=null){
+            val modelManager = Minecraft.getInstance().modelManager
+            val location = BlockModelShaper.stateToModelLocation(blockState)
+            val model = modelManager.getModel(location)
+            val quads = model.getQuads(null, null, Random(), EmptyModelData.INSTANCE)
+            model
+        }else{
+            pModel
+        }
+    }
+}
+```
+
+#### **drawable_chalk.json**
+
+```json
+{
+	"loader": "cobalt:override_loader",
+	"parent": "item/generated",
+	"textures": {
+		"layer0": "cobalt:chalk"
+	}
+}
+```
+
+<!-- tabs:end -->
+
+效果如下  
+![drawable_chalk](../picture/itemModel/drawable_chalk.gif)
+
+>[!note]
+> 如果你像修正草方块的颜色
+> 应该查询原版的实现方式,位置在`BlockColors`内类
+> 其实现调用了`BiomeColors#getAverageGrassColor`
+
+## BlockEntityWithoutLevelRenderer 
+
+如果你需要更加动态的渲染物品,那么你需要的是名为`BlockEntityWithoutLevelRenderer`,曾叫做`ItemStackTileEntityRenderer`  
+以代码的方式进行渲染,做到你想要的一切  
+
+首先要让MC知道你的物品模型需要`BlockEntityWithoutLevelRenderer`,这需要你的`BakedModel.isCustomRenderer`返回`true`  
+
+因为在`ItemRender#render`内,会以此作为判断
+
+而要实现这一目标,给出两种办法  
+
+一种是让你的`json`模型,直接或间接继承自`builtin/entity`  
+原因如下  
+
+在`ModelBakery#loadBlockModel`中,如果你的物品模型,继承自`builtin/entity`  
+你的模型就会被读取为一个名为`BLOCK_ENTITY_MARKER`的`BlockModel/UnbakedModel`  
+在`BlockModel#bakeVanilla`,模型就会被`bake`为`BuiltInModel`,它的`isCustomRender()`返回就为`true`
+
+另一种就是在`ModelBakeEvent`中进行替换,同上文替换`overrides`一致
+
+当然你也可以和上文一样,直接定义一个`IModelLoader`走一个模型加载的全套流程  
+
+这样,只要给你的物品复写`public void initializeClient(Consumer<IItemRenderProperties> consumer)`  
+给传入的`consumer`传入一个复写了`BlockEntityWithoutLevelRenderer getItemStackRenderer()`的`IItemRenderProperties`即可  
+不然则会默认返回`BlockEntityWithoutLevelRenderer(blockEntityRenderDispatcher,/*EntityModelSet*/ entityModels)`  
+
+通过以上操作,物品在渲染时候就会调用你传入的`BlockEntityWithoutLevelRender#renderByItem`  
+
+示例如下
+
+```kotlin
+override fun initializeClient(consumer: Consumer<IItemRenderProperties>) {
+    consumer.accept(object : IItemRenderProperties {
+        override fun getItemStackRenderer(): BlockEntityWithoutLevelRenderer {
+            return object : BlockEntityWithoutLevelRenderer(
+                Minecraft.getInstance().blockEntityRenderDispatcher, Minecraft.getInstance().entityModels
+            ) {
+                override fun renderByItem(
+                    pStack: ItemStack,
+                    pTransformType: TransformType,
+                    pPoseStack: PoseStack,
+                    pBuffer: MultiBufferSource,
+                    pPackedLight: Int,
+                    pPackedOverlay: Int
+                ) {
+                    //do anything you want to do
+                }
+            }
+        }
+    })
+}
+```
