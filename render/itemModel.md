@@ -18,6 +18,9 @@
 
 具体可以参见[wiki](https://minecraft.fandom.com/zh/wiki/%E6%A8%A1%E5%9E%8B#.E7.89.A9.E5.93.81.E6.A8.A1.E5.9E.8B)  
 
+### Use Block Model
+
+**_方块对应的物品默认是没有材质的_**  
 如果你的物品想要使用方块的模型,例如`BlockItem`的物品模型  
 可以直接让`parent`指向方块对应的模型,格式:`<nameSpace>:block/<blockRegisterName>`,`<>`内为根据实际填写的字段  
 
