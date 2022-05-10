@@ -168,7 +168,12 @@
 
 >[!warning]
 > 方块所持有的`BlockState`会在加载模型时候,穷举其所有排列组合,即笛卡尔积  
-> 请确保其枚举总可能结果数量在一个合理的范围内  
+> 请确保其枚举总可能结果数量在一个合理的范围内
+
+`BlockState`的切换需要你手动设置,可以覆写诸如    
+`getStateForPlacement`在放置时设置  
+`neighborChanged`毗邻方块更新时设置  
+`updateIndirectNeighbourShapes`,`updateShape`等
 
 ## JSON model  
 
@@ -313,3 +318,231 @@
 在这里我们给出一个管道的[例子](https://github.com/MalayPrime/rotarism-decorations/blob/master/src/generated/resources/assets/blockstates/normal_pipe.json)
 
 ![exampleForMultiPart](../picture/blockModel/exampleForMultiPart.png)
+
+## RenderType
+
+参见[renderType](render/renderType.md#normal-block)
+
+如果你的方块使用了带有alpha通道的贴图,那么你可能需要调用`ItemBlockRenderTypes#setRenderLayer`
+
+## noOcclusion
+
+如果你的方块出现了不正常的面剔除现象,那么你需要为你的方块的`BlockBehaviour.Properties#noOcclusion  
+差别可见图片上下两排  
+![](../picture/renderType/blockRenderType.png)
+
+## IModelData
+
+`forge`对于原版的扩充,基本可以理解为一个`Map<ModelProperty<T>,T>`  
+原版未使用的地方,`forge`大多进行了`wrapper`,并传入一个`EmptyModelData.INSTANCE`  
+```java
+public interface IModelData
+{
+    /**
+     * Check if this data has a property, even if the value is {@code null}. Can be
+     * used by code that intends to fill in data for a render pipeline, such as the
+     * forge animation system.
+     * <p>
+     * IMPORTANT: {@link #getData(ModelProperty)} <em>can</em> return {@code null}
+     * even if this method returns {@code true}.
+     * 
+     * @param prop The property to check for inclusion in this model data
+     * @return {@code true} if this data has the given property, even if no value is present
+     */
+    boolean hasProperty(ModelProperty<?> prop);
+
+    @Nullable
+    <T> T getData(ModelProperty<T> prop);
+    
+    @Nullable
+    <T> T setData(ModelProperty<T> prop, T data);
+}
+```
+`CTM`这种链接纹理,依靠的就是这个机制
+
+和他一样很重要的是`ModelDataManager`,可以理解为带拥有缓存,刷新等机制的`Map<BlockPos,IModelData>`  
+这是配合`BlockEntity`使用的
+
+## Coloring
+
+与物品一样,方块也可以染色,原理也一致,只不过接口变了而已  
+```java
+@OnlyIn(Dist.CLIENT)
+public interface BlockColor {
+   int getColor(BlockState pState, @Nullable BlockAndTintGetter pLevel, @Nullable BlockPos pPos, int pTintIndex);
+}
+```
+
+但是方块与物品不同,不存在所谓的`BlockStack`,`BlockState`也无法支持任意颜色的方块存在  
+因此,我们需要另外的载体,来存储方块所需的数据
+
+### example
+
+给出的例子是,利用上一章制作的`Colorful Chalk`内的数据,在其右键我们的`Colorful Block`的时候  
+设置它所拥有的`BlockEntity`内的字段  
+当我们的方块所对应的`getColor`被调用时,从`BlockEntity`中获得颜色信息
+
+<!-- tabs:start -->
+#### **ColorfulBlockByBlockEntity**
+
+```kotlin
+class ColorfulBlockByBlockEntity : Block(Properties.of(Material.STONE)), EntityBlock {
+
+    companion object {
+        @JvmStatic
+        fun registerColorHandle(event: ColorHandlerEvent.Block) {
+            event.blockColors.register(
+                { pState, pLevel, pPos, pTintIndex ->
+                    if (pLevel != null && pPos != null) {
+                        val blockEntity = pLevel.getBlockEntity(pPos) as ColorfulBlockEntity
+                        return@register blockEntity.color
+                    }
+                    0xffffff
+                }, AllRegisters.colorfulBlockByBlockEntity.get()
+            )
+        }
+    }
+
+    override fun newBlockEntity(pPos: BlockPos, pState: BlockState): BlockEntity = ColorfulBlockEntity(pPos, pState)
+
+    override fun use(
+        pState: BlockState,
+        pLevel: Level,
+        pPos: BlockPos,
+        pPlayer: Player,
+        pHand: InteractionHand,
+        pHit: BlockHitResult
+    ): InteractionResult {
+        if (pHand != InteractionHand.MAIN_HAND) {
+            return super.use(pState, pLevel, pPos, pPlayer, pHand, pHit)
+        }
+        val itemStack = pPlayer.getItemInHand(pHand)
+        val item = itemStack.item as? ColorfulChalk
+        val blockEntity = pLevel.getBlockEntity(pPos) as ColorfulBlockEntity
+        if (item != null) {
+            if (!pLevel.isClientSide) {
+                val color = item.getColor(itemStack)
+                blockEntity.color = color
+                return InteractionResult.SUCCESS
+            }
+        } else {
+            val color = Integer.toHexString(blockEntity.color)
+            if (pLevel.isClientSide) {
+                pPlayer.sendMessage(TextComponent("client:entity color:$color"), Util.NIL_UUID)
+            } else {
+                pPlayer.sendMessage(TextComponent("server:entity color:$color"), Util.NIL_UUID)
+            }
+        }
+        return super.use(pState, pLevel, pPos, pPlayer, pHand, pHit)
+    }
+}
+```
+
+#### **ColorfulBlockEntity**
+
+```kotlin
+class ColorfulBlockEntity(pos: BlockPos, state: BlockState) :
+    BlockEntity(AllRegisters.colorfulBlockEntityType.get(), pos, state) {
+    var color: Int = 0xffffff
+        set(value) = if (value in 0..0xffffff) {
+            if (value != field) {
+                field = value
+                if (level?.isClientSide == true) {
+                    Minecraft.getInstance().levelRenderer.setBlocksDirty(
+                        worldPosition.x, worldPosition.y, worldPosition.z, worldPosition.x, worldPosition.y, worldPosition.z
+                    )
+                } else {
+                    level?.sendBlockUpdated(worldPosition, blockState, blockState, 1)
+                }
+                Unit
+            } else {
+            }
+        } else {
+            throw AssertionError("color:${Integer.toHexString(value)} not range in 0 to 0xffffff")
+        }
+
+    override fun getUpdatePacket(): Packet<ClientGamePacketListener>? =
+        ClientboundBlockEntityDataPacket.create(this)
+
+    override fun getUpdateTag(): CompoundTag = CompoundTag().apply { putInt("color", color) }
+
+    override fun handleUpdateTag(tag: CompoundTag?) {
+        tag?.getInt("color")?.apply { color = this }
+    }
+
+    override fun onDataPacket(net: Connection?, pkt: ClientboundBlockEntityDataPacket?) {
+        pkt?.tag?.getInt("color")?.apply { color = this }
+    }
+}
+```
+
+#### **Register**
+
+```kotlin
+private val BLOCK = DeferredRegister.create(ForgeRegistries.BLOCKS, Cobalt.MOD_ID)
+private val BLOCKENTITY_TYPE = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITIES, Cobalt.MOD_ID)
+
+val colorfulBlockByBlockEntity = BLOCK.register("colorful_chalk_by_block_entity") { ColorfulBlockByBlockEntity() }
+
+val colorfulBlockByBlockEntityItem = ITEM.register("colorful_chalk_by_block_entity") {
+    BlockItem(colorfulBlockByBlockEntity.get(), Item.Properties().tab(creativeTab))
+}
+
+val colorfulBlockEntityType = BLOCKENTITY_TYPE.register("colorful_block") {
+    BlockEntityType.Builder.of({ pos, state ->
+        ColorfulBlockEntity(pos, state)
+    }, colorfulBlockByBlockEntity.get()).build(Util.fetchChoiceType(References.BLOCK_ENTITY, "colorful_block"))
+}
+```
+
+#### **Block Json Model**
+
+```json
+{
+  "parent": "block/block",
+  "textures": {
+    "down":"minecraft:block/iron_block",
+    "up":"minecraft:block/iron_block",
+    "north":"minecraft:block/iron_block",
+    "south":"minecraft:block/iron_block",
+    "west":"minecraft:block/iron_block",
+    "east":"minecraft:block/iron_block"
+  },
+  "elements": [
+    {   "from": [ 0, 0, 0 ],
+      "to": [ 16, 16, 16 ],
+      "faces": {
+        "down":  { "texture": "#down", "cullface": "down" ,"tintindex": 0 },
+        "up":    { "texture": "#up", "cullface": "up" ,"tintindex": 0 },
+        "north": { "texture": "#north", "cullface": "north" ,"tintindex": 0 },
+        "south": { "texture": "#south", "cullface": "south" ,"tintindex": 0 },
+        "west":  { "texture": "#west", "cullface": "west" ,"tintindex": 0 },
+        "east":  { "texture": "#east", "cullface": "east","tintindex": 0  }
+      }
+    }
+  ]
+}
+```
+
+<!-- tabs:end -->
+
+>[!note]
+> 这里的JSON模型相当于原版的贴方块  
+> 一定要使得**_tintindex_**不为默认值-1  
+
+
+>[!warning]
+> 注意我们调用的`LevelRender#setBlocksDirty`  
+> 否则物品的数据不会**_刷新_**  
+> 会被阻拦在`LevelRender#compileChunks`内的`ChunkRenderDispatcher.RenderChunk#isDirty`  
+
+
+效果如下
+![colorfulBlock](../picture/blockModel/colorfulBlock.gif)
+
+
+## BlockEntityRender  
+
+游戏中,总有那么些东西,看上去不像是普通的模型能过做到的,比如附魔台,那本书的动画,各个mod的机器的动画,透明箱子渲染的其拥有的物品  
+这一般是用`BlockEntityRender`实现的  
+
