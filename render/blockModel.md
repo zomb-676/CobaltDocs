@@ -327,7 +327,7 @@
 
 ## noOcclusion
 
-如果你的方块出现了不正常的面剔除现象,那么你需要为你的方块的`BlockBehaviour.Properties#noOcclusion  
+如果你的方块出现了不正常的面剔除现象,那么你需要为你的方块的`BlockBehaviour.Properties#noOcclusion`
 差别可见图片上下两排  
 ![](../picture/renderType/blockRenderType.png)
 
@@ -363,6 +363,10 @@ public interface IModelData
 和他一样很重要的是`ModelDataManager`,可以理解为带拥有缓存,刷新等机制的`Map<BlockPos,IModelData>`  
 这是配合`BlockEntity`使用的
 
+`forge`通过`IForgeBlockEntity`为`BlockEntiy`添加了  
+`requestModelDataUpdate()`  
+`default @Nonnull IModelData getModelData()`  
+
 ## Coloring
 
 与物品一样,方块也可以染色,原理也一致,只不过接口变了而已  
@@ -394,8 +398,10 @@ class ColorfulBlockByBlockEntity : Block(Properties.of(Material.STONE)), EntityB
             event.blockColors.register(
                 { pState, pLevel, pPos, pTintIndex ->
                     if (pLevel != null && pPos != null) {
-                        val blockEntity = pLevel.getBlockEntity(pPos) as ColorfulBlockEntity
-                        return@register blockEntity.color
+                        val blockEntity = pLevel.getBlockEntity(pPos) as? ColorfulBlockEntity
+                        //当方块被破坏后,由于需要渲染方块被破坏的粒子,此处会被调用  
+                        //但是由于坐标所处的`BlockEntity`已经无法获取,所以会出错,只能使用`as?`
+                        return@register blockEntity?.color ?: 0xffffff
                     }
                     0xffffff
                 }, AllRegisters.colorfulBlockByBlockEntity.get()
@@ -533,9 +539,9 @@ val colorfulBlockEntityType = BLOCKENTITY_TYPE.register("colorful_block") {
 
 >[!warning]
 > 注意我们调用的`LevelRender#setBlocksDirty`  
-> 否则物品的数据不会**_刷新_**  
+> 否则方块的数据不会**_刷新_**  
 > 会被阻拦在`LevelRender#compileChunks`内的`ChunkRenderDispatcher.RenderChunk#isDirty`  
-
+> 详见[RenderChunk的Cache问题](render/misc.md#renderchunk)
 
 效果如下
 ![colorfulBlock](../picture/blockModel/colorfulBlock.gif)
@@ -546,3 +552,16 @@ val colorfulBlockEntityType = BLOCKENTITY_TYPE.register("colorful_block") {
 游戏中,总有那么些东西,看上去不像是普通的模型能过做到的,比如附魔台,那本书的动画,各个mod的机器的动画,透明箱子渲染的其拥有的物品  
 这一般是用`BlockEntityRender`实现的  
 
+在实现`BlockEntityRender#render`前,我们需要一系列操作
+`BlockEntityRender`需要`BlockEntity`配合使用
+
+注册方块,方块需要实现`EntityBlock`接口  
+实现抽象方法`newBlockEntity`,返回`BlockEntiy`实例  
+需要注册`BlockEntityType`,并与你的方块进行绑定  
+订阅事件`EntityRenderersEvent.RegisterRenderers`,调用事件内`registerBlockEntityRenderer`进行绑定  
+
+>[!note]
+> 为什么我渲染出的物品都黑漆漆的?  
+> 查看你的`pPackedLight`参数,如果一直是0,可以通过给方块添加`noOcclusion`或者非完整`VoxelShape`解决  
+
+而最为重要的`render`函数的实现,则会在单独的[一章](renderInLevel.md)中单独介绍

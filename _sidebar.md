@@ -7,5 +7,6 @@
   - [OverlayTexture](render/overlayTexture.md)
   - [ItemModel](render/itemModel.md)
   - [BlockModel](render/blockModel.md)
+  - [RenderInLevel](render/renderInLevel.md)
   - [Misc](render/misc.md)
 - [style](style.md)

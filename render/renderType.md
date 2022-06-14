@@ -396,6 +396,10 @@ multibuffersource$buffersource.endBatch(Sheets.chestSheet());
 大多数时候,我们只关心于`entity`.`blockEntity`,`gui`的渲染,它们的数量与遍布每个角落的渲染方式与之相比平平无奇的方块少的多的多  
 面对这种较大的数量级,mj对于它们采用了特殊的方式  
 
+
+>[!tip]
+> 原版对其自身方块的设置位于类`ItemBlockRenderTypes`内
+
 `RenderType`类内
 ```java
 public static List<RenderType> chunkBufferLayers() {
