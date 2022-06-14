@@ -564,4 +564,4 @@ val colorfulBlockEntityType = BLOCKENTITY_TYPE.register("colorful_block") {
 > 为什么我渲染出的物品都黑漆漆的?  
 > 查看你的`pPackedLight`参数,如果一直是0,可以通过给方块添加`noOcclusion`或者非完整`VoxelShape`解决  
 
-而最为重要的`render`函数的实现,则会在单独的[一章](renderInLevel.md)中单独介绍
+而最为重要的`render`函数的实现,则会在单独的[一章](render/renderInLevel.md)中单独介绍
