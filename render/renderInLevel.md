@@ -115,6 +115,6 @@ buffer.vertex(matrix,1f,0f,0f)
 > 是否是画质是否是`Fabulous(极佳)`,如果是,可以将renderType切换到  
 > `Sheets.translucentCullBlockSheet()`
 
-# Model 
+## Model 
 
 `net.minecraft.client.model.Model`内,直接调用`renderToBuffer`即可

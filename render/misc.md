@@ -23,3 +23,21 @@ public void setBlockDirty(BlockPos pPos, BlockState pOldState, BlockState pNewSt
 即可标记`dirty`
 
 同理的还有`dirty` `section`的方法
+
+## ChunkOffset和&15
+
+有时你会看到BlockPos的各个坐标在被提交前,分别都与 15进行了按位&操作  
+这是用于每个section的独立渲染,它们会被`ChunkOffset` `uniform`进行修正,其类型为`vec3`  
+仅在mc按section渲染时被设置,其余时候各分量为0  
+
+## PoseStack
+
+`translate(double pX, double pY, double pZ)`平移  
+`scale(float pX, float pY, float pZ)`缩放  
+`mulPose(Quaternion pQuaternion)`用于旋转,其中的四元数可通过  
+`Quaternion.fromXYZ/YXZ/XYZ(flaot,float,flaot)`,注意为弧度制  
+或者`Vector3f`下的`XN` `XP` `YN` `YP` `ZN` `ZP`,`N/P`为`negative/positive`  
+下有方法`rotation/rotationDegrees(float)`,前者为弧度制,后者为角度制  
+
+内部有一个`Deque<PoseStack.Pose>`用于存储存储数据,`push`压入,`pop`弹出,`last`拿到队列顶部元素     
+每个`PoseStack.Pose`,内有`Matrix4f`的`pose`,和`Matrix3f`的`normal`  
