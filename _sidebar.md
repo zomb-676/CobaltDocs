@@ -9,5 +9,5 @@
   - [BlockModel](render/blockModel.md)
   - [RenderInLevel](render/renderInLevel.md)
   - [textureAtlas](render/TextureAtlas.md)
-  - [Misc](/misc.md)
+  - [Misc](render/misc.md)
 - [style](style.md)
