@@ -20,7 +20,7 @@ discord服务器[![discord](https://shields.io/badge/DiscordServer-Rua-purple?lo
 > * 由于个人水平有限,错误在所难免,有改进的意见请发Pull Request  
 > * **请确保你有足够的编程水平,这不是Java教程**  
 > * 同样的,对Modded Minecraft也有一定的了解  
-> * 代码部分采用Kotlin,这一块将会在下一章略有提及语法,不必担心  
+> * **文档内的代码提供kotlin/java版本,可通过右上角进行切换**
 > * Minecraft代码部分采用Forge+mojang表+idea parchment插件  
 > * 并非所有局部遍历/参数都在parchment下有可读性高的名字，文内贴出代码经过可读性的改善，并不完全与代码相同
 > * 本文偏向使用英文,第一次出现的单词,会在()内标注参考中文,并不一定准确
