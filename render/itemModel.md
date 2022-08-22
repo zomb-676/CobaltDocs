@@ -47,9 +47,14 @@ resources/
 ```
 
 注册物品
-```kotlin
+```kotlin-s
 private val ITEM = DeferredRegister.create(ForgeRegistries.ITEMS, Cobalt.MOD_ID)
 private val whetherIndicator = ITEM.register("weather_indicator") { Item(Item.Properties().tab(creativeTab)) }
+```
+
+```java-s
+private DeferredRegister<Item> ITEM = DeferredRegister.create(ForgeRegistries.ITEMS, Cobalt.MOD_ID);
+private RegistryObject<Item> whetherIndicator = ITEM.register("weather_indicator", () -> new Item(Item.Properties().tab(creativeTab)));
 ```
 
 上述文件结构中`weather_indicator.json`尚未编写,其他json模型,都由`blockBench`生成  
@@ -96,7 +101,7 @@ public interface ClampedItemPropertyFunction extends ItemPropertyFunction {
 理论上也可以自己随意使用  
 
 代码
-```kotlin
+```kotlin-s
 private val whetherIndicator = ITEM.register("weather_indicator"){
     object :Item(Properties().tab(creativeTab)){
         override fun isFoil(pStack: ItemStack): Boolean {
@@ -126,6 +131,39 @@ fun setItemOverride(event: FMLClientSetupEvent) {
         }
     }
 }
+```
+
+```java-s
+private Item whetherIndicator = ITEM.register("weather_indicator", () -> new Item(Properties().tab(creativeTab)) {
+	@Override
+	public bool isFoil(pStack: ItemStack) {
+		var level = Minecraft.getInstance().level
+		if (Thread.currentThread().threadGroup ==SidedThreadGroups.SERVER || (level != null && level.isThundering)) {
+			return true;
+		}else {
+			super.isFoil(pStack);
+		}
+	}
+});
+
+public static void setItemOverride(FMLClientSetupEvent event) {
+    ItemProperties.register(whetherIndicator.get(), ResourceLocation(Cobalt.MOD_ID, "weather"),
+        (ItemStack itemStack, _, LivingEntity livingEntity, int seed) -> {
+	        var clientLevel = Minecraft.getInstance().level;
+	        if (clientLevel == null){
+	            return 0f;
+	        }else{
+	            if (clientLevel.isRaining) {
+	                return 1f;
+	            } else if (clientLevel.dayTime < 11000) {
+	                return 2f;
+	            } else {
+	                return 3f;
+	            }	            
+	        }
+        } 
+    );
+} 
 ```
 
 资源文件结构
@@ -257,15 +295,21 @@ public interface ItemColor {
 <!-- tabs:start -->
 #### **item register**
 
-```kotlin
+```kotlin-s
 val redChalk = ITEM.register("red_chalk") { Item(Item.Properties().tab(creativeTab)) }
 val greenChalk = ITEM.register("green_chalk") { Item(Item.Properties().tab(creativeTab)) }
 val blueChalk = ITEM.register("blue_chalk") { Item(Item.Properties().tab(creativeTab)) }
 ```
 
+```java-s
+RegistryObject<Item> redChalk = ITEM.register("red_chalk", () -> new Item(Item.Properties().tab(creativeTab)));
+RegistryObject<Item> greenChalk = ITEM.register("green_chalk", () -> new Item(Item.Properties().tab(creativeTab)));
+RegistryObject<Item> blueChalk = ITEM.register("blue_chalk", () -> new Item(Item.Properties().tab(creativeTab)));
+```
+
 #### **ItemColor register**
 
-```kotlin
+```kotlin-s
 @JvmStatic
 fun registerColorHandle(event: ColorHandlerEvent.Item) {
     event.itemColors.register({ pStack, pTintIndex ->
@@ -276,6 +320,19 @@ fun registerColorHandle(event: ColorHandlerEvent.Item) {
             else -> MaterialColor.COLOR_BLACK
         }.col
     }, redChalk.get(), greenChalk.get(), blueChalk.get())
+}
+```
+
+```java-s
+public static void registerColorHandle(ColorHandlerEvent.Item event) {
+    event.itemColors.register({ pStack, pTintIndex ->
+        return switch(pStack.item){
+            case redChalk.get() -> MaterialColor.COLOR_RED;
+            case greenChalk.get() -> MaterialColor.COLOR_GREEN;
+            case blueChalk.get() -> MaterialColor.COLOR_BLUE;
+            case else -> MaterialColor.COLOR_BLACK;
+        }.col;
+    }, redChalk.get(), greenChalk.get(), blueChalk.get());
 }
 ```
 
@@ -293,7 +350,7 @@ fun registerColorHandle(event: ColorHandlerEvent.Item) {
 <!-- tabs:start -->
 #### **colorful chalk item**
 
-```kotlin
+```kotlin-s
 class ColorfulChalk : Item(Properties().tab(creativeTab)) {
     fun setColor(itemStack: ItemStack, color: Int) {
         val nbt = IntTag.valueOf(color)
@@ -309,9 +366,34 @@ class ColorfulChalk : Item(Properties().tab(creativeTab)) {
 val colorfulChalk = ITEM.register("colorful_chalk"){ColorfulChalk()}
 ```
 
+```java-s
+class ColorfulChalk extends Item {
+
+	public ColorfulChalk() {
+		super(new Properties().tab(creativeTab));
+	}
+
+    public void setColor(ItemStack itemStack, int color) {
+        var nbt = IntTag.valueOf(color);
+        itemStack.addTagElement("color", nbt);
+    }
+
+    public int getColor(ItemStack itemStack) {
+        var tag = itemStack.tag;
+        if(tag =! null && tag.get("color") instanceof IntTag colorTag) {
+            return colorTag.asInt;
+        }else {
+            return 0xffffff;
+        }
+    }
+}
+
+RegistryObject<ColorfulChalk> colorfulChalk = ITEM.register("colorful_chalk", ColorfulChalk::new);
+```
+
 #### **ItemColor register**
 
-```kotlin
+```kotlin-s
 @JvmStatic
 fun registerColorHandle(event: ColorHandlerEvent.Item) {
     event.itemColors.register({pStack,_ ->
@@ -320,9 +402,17 @@ fun registerColorHandle(event: ColorHandlerEvent.Item) {
 }
 ```
 
+```java-s
+public static void registerColorHandle(ColorHandlerEvent.Item event) {
+    event.itemColors.register({pStack,_ ->
+        ((ColorfulChalk)pStack.item).getColor(pStack)
+    }, colorfulChalk.get());
+}
+```
+
 ### **Command**
 
-```kotlin
+```kotlin-s
 @JvmStatic
 fun registerCommand(event: RegisterCommandsEvent) {
     event.dispatcher.register(LiteralArgumentBuilder.literal<CommandSourceStack?>("setColor").then(
@@ -348,9 +438,34 @@ fun registerCommand(event: RegisterCommandsEvent) {
 }
 ```
 
+```java-s
+public static void registerCommand(RegisterCommandsEvent event) {
+    event.dispatcher.register(LiteralArgumentBuilder.literal<CommandSourceStack?>("setColor").then(
+        Commands.argument("color",new HexArgumentType(0,0xffffff))
+            .executes { ctx ->
+                var color = ctx.getArgument("color", Int::class.java);
+                var source = ctx.source;
+                var entity = source.entity;
+                if (entity instanceof Player) {
+                    var itemStack = entity.mainHandItem;
+                    if (itemStack.item instanceof ColorfulChalk) {
+                        (itemStack.item as ColorfulChalk).setColor(itemStack, color);
+                        source.sendSuccess(TextComponent("successfully set color"), true);
+                    } else {
+                        source.sendFailure(TextComponent("main hand isn't holding colorfulChalk"));
+                    }
+                }else{
+                    source.sendFailure(TextComponent("sender is not a player"));
+                }
+                return 0;
+            }
+    ));
+}
+```
+
 ### **HexArgumentType**
 
-```kotlin
+```kotlin-s
 class HexArgumentType(private val minimum: Int = Int.MIN_VALUE, private val maximum: Int = Int.MAX_VALUE) :
     ArgumentType<Int> {
 
@@ -421,6 +536,81 @@ class HexArgumentType(private val minimum: Int = Int.MIN_VALUE, private val maxi
 }
 ```
 
+```java-s
+class HexArgumentType extends ArgumentType<Integer> {
+    private int minimum = Integer.MAX_VALUE;
+    private int maximum = Integer.MAX_VALUE;
+    
+    private static List<Integer> example = mutableListOf("0xffffff", "0xff00ff");
+    private static DynamicCommandExceptionType hexSynaxErrorType = DynamicCommandExceptionType ( value ->
+        LiteralMessage("hex number must begin witch 0x instead of " + value)
+    );
+    private SimpleCommandExceptionType readerExpectedStartOf0x = SimpleCommandExceptionType(LiteralMessage("expected start with 0x"))
+    private SimpleCommandExceptionType noHexInputType = SimpleCommandExceptionType(LiteralMessage("please enter number"))
+
+	@Override
+    public int parse(reader: StringReader) throws CommandSyntaxException {
+        var cursor = reader.cursor;
+        try {
+            var first = reader.read();
+            var second = reader.read();
+            if (first != '0' || second != 'x') {
+                reader.cursor = cursor;
+                throw new hexSynaxErrorType.createWithContext(reader, first + "" +second);
+            }
+        } catch (Exception e) {
+            throw readerExpectedStartOf0x.create();
+        }
+        cursor += 2;
+        var result :String;
+        try {
+            result = reader.readString();
+        }catch (e:Exception){
+            throw noHexInputType.create();
+        }
+        var resultNum = Integer.parseInt(result,16);
+        if (resultNum < minimum) {
+            reader.cursor = cursor;
+            throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.integerTooLow().createWithContext(reader, result, minimum);
+        }
+        if (resultNum > maximum) {
+            reader.cursor = cursor;
+            throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.integerTooHigh().createWithContext(reader, result, maximum);
+        }
+        return resultNum;
+    }
+
+	@Override
+    public bool equals(Object other) {
+        if (this == other) return true;
+        if (!(other instanceof IntegerArgumentType)) return false;
+        return maximum == other.maximum && minimum == other.minimum;
+    }
+    
+	@Override 
+	public int hashCode() {
+        return 31 * minimum + maximum;
+    }
+
+    @Override
+    public String toString() {
+        if (minimum == Int.MIN_VALUE && maximum == Int.MAX_VALUE) {
+            return "integer()";
+        } else if (maximum == Int.MAX_VALUE) {
+            return "integer(" + "minimum + ")";
+        } else {
+            return "integer(" + "minimum" + ", " +maximum + ")";
+        }
+    }
+
+	@Override
+    public MutableCollection<String> getExamples() {
+        return example;
+    }
+
+}
+```
+
 <!-- tabs:end -->
 
 再编写一个命令,用于给粉笔设置颜色  
@@ -438,7 +628,7 @@ class HexArgumentType(private val minimum: Int = Int.MIN_VALUE, private val maxi
 
 这里给出两种办法,一种通过`ModelBakedEvent`直接替换并利用代理模式,包上一层  
 
-```kotlin
+```kotlin-s
 fun setBakedModel(event: ModelBakeEvent){
     val modelResourceLocation = ModelResourceLocation(AllRegisters.drawableChalk.get().registryName,"inventory")
     val model = event.modelRegistry[modelResourceLocation]
@@ -448,12 +638,23 @@ fun setBakedModel(event: ModelBakeEvent){
 }
 ```
 
+```java-s
+public void setBakedModel(ModelBakeEvent event){
+    var modelResourceLocation = new ModelResourceLocation(AllRegisters.drawableChalk.get().registryName,"inventory");
+    var model = event.modelRegistry.get(modelResourceLocation);
+    event.modelRegistry.set(modelResourceLocation) = new BakedModelWrapper<BakedModel>(model) {
+        @Override public ItemOverrides getOverrides() { return OverrideItemOverrides();)
+    };
+}
+```
+
+
 如果你不嫌麻烦的话,可以这样  
 
 <!-- tabs:start -->
 #### **OverrideModelLoader**
 
-```kotlin
+```kotlin-s
 class OverrideModelLoader : IModelLoader<OverrideModelGeometry> {
     companion object {
         @JvmStatic
@@ -481,9 +682,32 @@ class OverrideModelLoader : IModelLoader<OverrideModelGeometry> {
 }
 ```
 
+```java-s
+class OverrideModelLoader extends IModelLoader<OverrideModelGeometry> {
+
+    public static void registerModelLoader(ModelRegistryEvent event) {
+        ModelLoaderRegistry.registerLoader(
+            ResourceLocation(Cobalt.MOD_ID, "override_loader"),
+            new OverrideModelLoader()
+        );
+    }
+
+    @Override
+    public void onResourceManagerReload(ResourceManager pResourceManager) {}
+
+    @Override
+    public OverrideModelGeometry read(JsonDeserializationContext deserializationContext, JsonObject modelContents) {
+        modelContents.remove("loader");
+        var model = deserializationContext.deserialize<BlockModel>(modelContents, BlockModel::class.java);
+        return OverrideModelGeometry(model);
+    }
+
+}
+```
+
 #### **OverrideModelGeometry**
 
-```kotlin
+```kotlin-s
 class OverrideModelGeometry(val delegate: BlockModel) : IModelGeometry<OverrideModelGeometry> {
     override fun bake(
         owner: IModelConfiguration?,
@@ -511,18 +735,60 @@ class OverrideModelGeometry(val delegate: BlockModel) : IModelGeometry<OverrideM
 }
 ```
 
+```java-s
+class OverrideModelGeometry extends IModelGeometry<OverrideModelGeometry> {
+	
+	delegate: BlockModel;
+	
+	OverrideModelGeometry(BlockModel delegate) {
+		this.delegate = delegate;
+	}
+
+    @Override
+    public BakedModel bake(IModelConfiguration owner,ModelBakery bakery,Function<Material, TextureAtlasSprite> spriteGetter,
+        ModelState modelTransform,ItemOverrides overrides,ResourceLocation modelLocation) {
+        var delegateModel = delegate.bake(
+            bakery, delegate, spriteGetter, modelTransform, modelLocation, delegate.guiLight.lightLikeBlock()
+        );
+        return OverrideWrappedBakedModel(delegateModel, OverrideItemOverrides());
+    }
+
+    @Override
+    public MutableCollection<Material> getTextures(IModelConfiguration owner,Function<ResourceLocation, UnbakedModel> modelGetter,
+			MutableSet<Pair<String, String>> missingTextureErrors){
+        return delegate.getMaterials(modelGetter, missingTextureErrors);
+    }
+
+}
+```
+
 #### **OverrideWrappedBakedModel**
 
-```kotlin
+```kotlin-s
 class OverrideWrappedBakedModel(originalModel: BakedModel, private val overrides: OverrideItemOverrides) :
     BakedModelWrapper<BakedModel>(originalModel) {
     override fun getOverrides(): ItemOverrides = overrides
 }
 ```
 
+```java-s
+class OverrideWrappedBakedModel extends BakedModelWrapper<BakedModel> {
+    
+    private OverrideItemOverrides overrides;
+    
+    public OverrideWrappedBakedModel(originalModel BakedModel, OverrideItemOverrides overrides){
+        this.overrides = overrides;
+        super(originModel);
+    }
+    
+    @override
+    public ItemOverrides getOverrides() { return overrides;}
+}
+```
+
 #### **OverrideItemOverrides**
 
-```kotlin
+```kotlin-s
 class OverrideItemOverrides : ItemOverrides() {
 
     companion object {
@@ -546,6 +812,28 @@ class OverrideItemOverrides : ItemOverrides() {
             model
         }else{
             pModel
+        }
+    }
+}
+```
+
+```java-s
+class OverrideItemOverrides extends ItemOverrides() {
+
+	static List<BakedModel> cache = mutableListOf<>();
+
+    @Override
+    public BakedModel resolve(BakedModel pModel,ItemStack pStack,ClientLevel pLevel,LivingEntity pEntity,Int pSeed) {
+        var item = (DrawableChalk) pStack.item; 
+        var blockState = item.getBlockState(pStack);
+        if (blockState!=null){
+            val modelManager = Minecraft.getInstance().modelManager;
+            val location = BlockModelShaper.stateToModelLocation(blockState);
+            val model = modelManager.getModel(location);
+            val quads = model.getQuads(null, null, Random(), EmptyModelData.INSTANCE);
+            return model;
+        }else{
+            return pModel;
         }
     }
 }
@@ -603,7 +891,7 @@ class OverrideItemOverrides : ItemOverrides() {
 
 示例如下
 
-```kotlin
+```kotlin-s
 override fun initializeClient(consumer: Consumer<IItemRenderProperties>) {
     consumer.accept(object : IItemRenderProperties {
         override fun getItemStackRenderer(): BlockEntityWithoutLevelRenderer {
@@ -617,6 +905,27 @@ override fun initializeClient(consumer: Consumer<IItemRenderProperties>) {
                     pBuffer: MultiBufferSource,
                     pPackedLight: Int,
                     pPackedOverlay: Int
+                ) {
+                    //do anything you want to do
+                }
+            }
+        }
+    })
+}
+```
+
+```java-s
+@Override
+public void initializeClient(consumer: Consumer<IItemRenderProperties>) {
+    consumer.accept(new IItemRenderProperties {
+        @Override
+        public BlockEntityWithoutLevelRenderer getItemStackRenderer() {
+            return new BlockEntityWithoutLevelRenderer(
+                Minecraft.getInstance().blockEntityRenderDispatcher, Minecraft.getInstance().entityModels
+            ) {
+                @Override
+                public void renderByItem(ItemStack pStack,TransformType pTransformType,PoseStack pPoseStack,
+                    MultiBufferSource pBuffer,Int pPackedLight,Int pPackedOverlay
                 ) {
                     //do anything you want to do
                 }

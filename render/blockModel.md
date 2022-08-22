@@ -387,9 +387,10 @@ public interface BlockColor {
 当我们的方块所对应的`getColor`被调用时,从`BlockEntity`中获得颜色信息
 
 <!-- tabs:start -->
+
 #### **ColorfulBlockByBlockEntity**
 
-```kotlin
+```kotlin-s
 class ColorfulBlockByBlockEntity : Block(Properties.of(Material.STONE)), EntityBlock {
 
     companion object {
@@ -444,9 +445,69 @@ class ColorfulBlockByBlockEntity : Block(Properties.of(Material.STONE)), EntityB
 }
 ```
 
+```java-s
+public class ColorfulBlockByBlockEntity extends Block implements EntityBlock {
+
+	//此处省略构造函数
+
+    public static void registerColorHandle(ColorHandlerEvent.Block event) {
+        event.blockColors.register({pState, pLevel, pPos, pTintIndex ->
+                if (pLevel != null && pPos != null) {
+                    var blockEntity =(ColorfulBlockEntity)pLevel.getBlockEntity(pPos)
+                    //当方块被破坏后,由于需要渲染方块被破坏的粒子,此处会被调用  
+                    //但是由于坐标所处的`BlockEntity`已经无法获取,所以会出错,需要额外判断
+                    if(blockEntity !=null){
+                        return blockEntity.color;
+                    }
+                }
+                return 0xffffff;
+            }, AllRegisters.colorfulBlockByBlockEntity.get()
+        )
+    }
+
+	@Override
+    public BlockEntity newBlockEntity(BlockPos pPos,BlockState pState) { 
+        return ColorfulBlockEntity(pPos, pState);
+    }
+    
+	@Override
+    public InteractionResult use(
+        BlockState pState,
+        Level pLevel,
+        BlockPos pPos,
+        Player pPlayer,
+        InteractionHand pHand,
+        BlockHitResult pHit
+    ){
+        if (pHand != InteractionHand.MAIN_HAND) {
+            return super.use(pState, pLevel, pPos, pPlayer, pHand, pHit);
+        }
+        var itemStack = pPlayer.getItemInHand(pHand);
+        if(itemStack.item instanceof ColorfulChalk item) {
+	        var blockEntity = (ColorfulBlockEntity)pLevel.getBlockEntity(pPos);
+	        if (item != null) {
+	            if (!pLevel.isClientSide) {
+	                val color = item.getColor(itemStack);
+	                blockEntity.color = color;
+	                return InteractionResult.SUCCESS;
+	            }
+	        } else {
+	            var color = Integer.toHexString(blockEntity.color);
+	            if (pLevel.isClientSide) {
+	                pPlayer.sendMessage(TextComponent("client:entity color:$color"), Util.NIL_UUID);
+	            } else {
+	                pPlayer.sendMessage(TextComponent("server:entity color:$color"), Util.NIL_UUID);
+	            }
+	        }        
+        }
+        return super.use(pState, pLevel, pPos, pPlayer, pHand, pHit);
+    }
+}
+```
+
 #### **ColorfulBlockEntity**
 
-```kotlin
+```kotlin-s
 class ColorfulBlockEntity(pos: BlockPos, state: BlockState) :
     BlockEntity(AllRegisters.colorfulBlockEntityType.get(), pos, state) {
     var color: Int = 0xffffff
@@ -482,9 +543,66 @@ class ColorfulBlockEntity(pos: BlockPos, state: BlockState) :
 }
 ```
 
+```java-s
+class ColorfulBlockEntity extends BlockEntity{
+    
+    public ColorfulBlockEntity(BlockPos pos, BlockState state){
+        super(AllRegisters.colorfulBlockEntityType.get(), pos, state);
+    }
+        
+    private int color = 0xffffff;
+    
+    public int getColor() {
+        return color;
+    }
+    
+    public void setColor(color) {
+        if(color < 0 && color > 0xffffff)
+            throw AssertionError("color:${Integer.toHexString(value)} not range in 0 to 0xffffff");
+        if(this.color != color) {
+            this.color = color;
+            if(level == null) {
+                return;
+            }
+            if(level.isClientSide) {
+                 Minecraft.getInstance().levelRenderer.setBlocksDirty(
+                    worldPosition.x, worldPosition.y, worldPosition.z, worldPosition.x, worldPosition.y, worldPosition.z
+                 );                
+            }else {
+                level.sendBlockUpdated(worldPosition, blockState, blockState, 1)
+            }
+        }
+    }
+
+	@Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        ClientboundBlockEntityDataPacket.create(this);
+	}
+	
+	@Override
+	public CompoundTag getUpdateTag() {
+		var tag = CompoundTag();
+		tag.putInt("color",color);
+		return tag;
+	}
+	
+	@Override
+	public void handleUpdateTag(CompoundTag tag) {
+		this.color = tag.getInt("color"); //可能需要考虑tag不存在的情况
+	}
+
+	@Override
+	public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt){
+		var color = pkt.tag.getInt("color"); //两个参数都可能为空
+		this.color = color;
+	}	
+}
+```
+
+
 #### **Register**
 
-```kotlin
+```kotlin-s
 private val BLOCK = DeferredRegister.create(ForgeRegistries.BLOCKS, Cobalt.MOD_ID)
 private val BLOCKENTITY_TYPE = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITIES, Cobalt.MOD_ID)
 
@@ -499,6 +617,24 @@ val colorfulBlockEntityType = BLOCKENTITY_TYPE.register("colorful_block") {
         ColorfulBlockEntity(pos, state)
     }, colorfulBlockByBlockEntity.get()).build(Util.fetchChoiceType(References.BLOCK_ENTITY, "colorful_block"))
 }
+```
+
+```java-s
+DeferredRegister<Block> BLOCK = DeferredRegister.create(ForgeRegistries.BLOCKS, Cobalt.MOD_ID);
+DeferredRegister<BlockEntityType<?>> = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITIES, Cobalt.MOD_ID);
+
+RegistryObject<ColorfulBlockByBlockEntity> colorfulBlockByBlockEntity 
+	= BLOCK.register("colorful_chalk_by_block_entity",ColorfulBlockByBlockEntity::new);
+
+RegistryObject<BlockItem> colorfulBlockByBlockEntityItem = ITEM.register("colorful_chalk_by_block_entity",
+    () -> new BlockItem(colorfulBlockByBlockEntity.get(), Item.Properties().tab(creativeTab))
+);
+
+RegistryObject<BlockEntityType<ColorfulBlockByBlockEntity>> colorfulBlockEntityType = BLOCKENTITY_TYPE.register("colorful_block") ,
+    () -> BlockEntityType.Builder.of({ pos, state ->
+        ColorfulBlockEntity(pos, state)
+    }, colorfulBlockByBlockEntity.get()).build(Util.fetchChoiceType(References.BLOCK_ENTITY, "colorful_block"))
+);
 ```
 
 #### **Block Json Model**
@@ -529,6 +665,7 @@ val colorfulBlockEntityType = BLOCKENTITY_TYPE.register("colorful_block") {
   ]
 }
 ```
+
 
 <!-- tabs:end -->
 

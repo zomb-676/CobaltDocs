@@ -11,11 +11,18 @@
 
 ## Block
 
-```kotlin
+```kotlin-s
 val blockRenderer = Minecraft.getInstance().blockRenderer
 val blockstate = Blocks.ANVIL.defaultBlockState()
 blockRenderer.renderSingleBlock(blockstate,pPoseStack, pBufferSource, pPackedLight
     , pPackedOverlay,EmptyModelData.INSTANCE)
+```
+
+```java-s
+var blockRenderer = Minecraft.getInstance().blockRenderer;
+var blockstate = Blocks.ANVIL.defaultBlockState();
+blockRenderer.renderSingleBlock(blockstate,pPoseStack, pBufferSource, pPackedLight
+    , pPackedOverlay,EmptyModelData.INSTANCE);
 ```
 
 ![renderInLevelBlock.png](../picture/renderInLevel/renderInLevelBlock.png)
@@ -24,7 +31,7 @@ blockRenderer.renderSingleBlock(blockstate,pPoseStack, pBufferSource, pPackedLig
 
 ### BakedModel
 
-```kotlin
+```kotlin-s
 val blockRenderer = Minecraft.getInstance().blockRenderer
 val blockstate = Blocks.ANVIL.defaultBlockState()
 val model = blockRenderer.getBlockModel(blockstate)
@@ -35,6 +42,19 @@ blockRenderer.modelRenderer.renderModel(pPoseStack.last(),
     pPackedLight, pPackedOverlay,
     EmptyModelData.INSTANCE
 )
+```
+
+```java-s
+var blockRenderer = Minecraft.getInstance().blockRenderer;
+var blockstate = Blocks.ANVIL.defaultBlockState();
+var model = blockRenderer.getBlockModel(blockstate);
+blockRenderer.modelRenderer.renderModel(pPoseStack.last(),
+    pBufferSource.getBuffer(RenderType.solid()),
+    blockstate, model,
+    /*r*/1.0f,/*g*/1.0f,/*b*/1.0f,
+    pPackedLight, pPackedOverlay,
+    EmptyModelData.INSTANCE
+);
 ```
 
 `renderType`可从`ItemBlockRenderTypes#getRenderType`获取  
@@ -54,7 +74,7 @@ blockRenderer.modelRenderer.renderModel(pPoseStack.last(),
 
 ## Item  
 
-```kotlin
+```kotlin-s
 val itemRenderer = Minecraft.getInstance().itemRenderer
 val itemStack = ItemStack(Items.IRON_PICKAXE) // need cache
 val model =itemRenderer.getModel(itemStack,pBlockEntity.level,null,0)
@@ -62,6 +82,16 @@ itemRenderer.render(
     itemStack,ItemTransforms.TransformType.GROUND,/*left hand*/false,pPoseStack,
     pBufferSource,pPackedLight,pPackedOverlay,model
 )
+```
+
+```java-s
+var itemRenderer = Minecraft.getInstance().itemRenderer;
+var itemStack = ItemStack(Items.IRON_PICKAXE); // need cache
+var model =itemRenderer.getModel(itemStack,pBlockEntity.level,null,0);
+itemRenderer.render(
+    itemStack,ItemTransforms.TransformType.GROUND,/*left hand*/false,pPoseStack,
+    pBufferSource,pPackedLight,pPackedOverlay,model
+);
 ```
 
 ![renderInLevelItem.png](../picture/renderInLevel/renderInLevelItem.png)  
@@ -72,7 +102,7 @@ itemRenderer.render(
 
 给出一个利用`RenderType`自行提交顶点绘制流体的例子  
 
-```kotlin
+```kotlin-s
 val renderType = RenderType.translucent()
 val buffer = pBufferSource.getBuffer(renderType)
 val pos = pBlockEntity.blockPos
@@ -106,6 +136,42 @@ buffer.vertex(matrix,1f,0f,0f)
     .uv(atlas.u1,atlas.v0)
     .overlayCoords(OverlayTexture.NO_OVERLAY)
     .uv2(pPackedLight).normal(0.0F, 1.0F, 0.0F).endVertex()
+```
+
+```java-s
+var renderType = RenderType.translucent();
+var buffer = pBufferSource.getBuffer(renderType);
+var pos = pBlockEntity.blockPos;
+var atlas = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(Fluids.WATER.attributes.stillTexture);
+var color = Fluids.WATER.attributes.color;
+var r = color >> 16 & 255;
+var g = color >> 8 & 255;
+var b = color & 255;
+var alpha = color >> 24 & 255;
+var matrix = pPoseStack.last().pose();
+buffer.vertex(matrix,0f,0f,0f)
+    .color(r,g,b,alpha)
+    .uv(atlas.u0,atlas.v0)
+    .overlayCoords(OverlayTexture.NO_OVERLAY)
+    .uv2(pPackedLight).normal(0.0F, 1.0F, 0.0F).endVertex();
+
+buffer.vertex(matrix,0f,1f,1f)
+    .color(r,g,b,alpha)
+    .uv(atlas.u0,atlas.v1)
+    .overlayCoords(OverlayTexture.NO_OVERLAY)
+    .uv2(pPackedLight).normal(0.0F, 1.0F, 0.0F).endVertex();
+
+buffer.vertex(matrix,1f,1f,1f)
+    .color(r,g,b,alpha)
+    .uv(atlas.u1,atlas.v1)
+    .overlayCoords(OverlayTexture.NO_OVERLAY)
+    .uv2(pPackedLight).normal(0.0F, 1.0F, 0.0F).endVertex();
+
+buffer.vertex(matrix,1f,0f,0f)
+    .color(r,g,b,alpha)
+    .uv(atlas.u1,atlas.v0)
+    .overlayCoords(OverlayTexture.NO_OVERLAY)
+    .uv2(pPackedLight).normal(0.0F, 1.0F, 0.0F).endVertex();
 ```
 
 ![renderInLevelFluid.png](../picture/renderInLevel/renderInLevelFluid.png)  

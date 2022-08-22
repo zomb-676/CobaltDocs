@@ -115,7 +115,7 @@ WriteMaskStateShard  -->  RenderStateShard
 
 利用`RenderType`简化上次的代码
 
-```kotlin
+```kotlin-s
 @Suppress("unused")
 @Mod.EventBusSubscriber(Dist.CLIENT)
 object VertexFillByRenderType {
@@ -146,6 +146,43 @@ object VertexFillByRenderType {
         dataFill(event,buffer,Blocks.ANVIL)
         RenderSystem.disableDepthTest()
         bufferSource.endBatch(RenderTypeHolder.renderType)
+    }
+}
+```
+
+```java-s
+@Suppress("unused")
+@Mod.EventBusSubscriber(Dist.CLIENT)
+class VertexFillByRenderType {
+
+    private class RenderTypeHolder extends RenderType("any", DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 256, false, false, {}, {}) {
+        
+        public RenderTypeHolder(){
+            throw RuntimeException("never should run to there");
+        }
+    
+        @Suppress("INACCESSIBLE_TYPE")
+        public static RenderType renderType = create(
+            "posColorRenderType", DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 256, false, false,
+            CompositeState.builder()
+                .setShaderState(POSITION_COLOR_SHADER)
+                .setCullState(NO_CULL)
+                .setDepthTestState(NO_DEPTH_TEST)
+                .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                .createCompositeState(false)
+        );
+    }
+
+    @SubscribeEvent
+    public static void renderLevelLastEvent(RenderLevelLastEvent event) {
+        if (Minecraft.getInstance().player.mainHandItem.item != Items.ANVIL) {
+            return;
+        }
+        var bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
+        var buffer = bufferSource.getBuffer(RenderTypeHolder.renderType);
+        dataFill(event,buffer,Blocks.ANVIL);
+        RenderSystem.disableDepthTest();
+        bufferSource.endBatch(RenderTypeHolder.renderType);
     }
 }
 ```

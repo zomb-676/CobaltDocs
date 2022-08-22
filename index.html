@@ -47,10 +47,23 @@
                 });
 
                 hook.doneEach(function () {
-                    // hljs.highlightAll();
+                    switchLanguageShow()
+                });
+
+                hook.mounted(function () {
+                    let insertDom = `
+                    <div style="position: fixed;z-index: 999;top: 10px;right: 10%">
+                    <label class="switch" onclick="switchLanguageShow()">
+                        <input type="checkbox" id="languageSwitcher">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="tooltiptext" style="z-index: 1000">Kotlin<=>Java</span>
+                    </div>
+                    `
+                    let mainDOM = document.getElementsByTagName("body")[0]
+                    mainDOM.innerHTML += insertDom
                 });
             },
-
         ],
         markdown: {
             renderer: {
@@ -59,6 +72,22 @@
                         return (
                             '<div class="mermaid">' + mermaid.render('mermaid-svg-' + num++, code) + "</div>"
                         );
+                    }
+                    // console.log(arguments)
+                    // console.log("code:" + code)
+                    // console.log("lang:" + lang)
+                    //
+                    // for (let i = 0; i < arguments.length; i++) {
+                    //     console.log(i + "=>" + arguments[i])
+                    // }
+                    // console.log(this)
+                    if (arguments[1] === "java-s"){
+                        arguments[1] = "java"
+                        return "<div class='languageChangeAware-java'>" + this.origin.code.apply(this, arguments) + "</div>"
+                    }
+                    if (arguments[1] === "kotlin-s"){
+                        arguments[1] = "kotlin"
+                        return "<div class='languageChangeAware-kotlin'>" + this.origin.code.apply(this, arguments) + "</div>"
                     }
                     return this.origin.code.apply(this, arguments);
                 }
@@ -78,6 +107,9 @@
             attention: {
                 label: "attention"
             }
+        },
+        tabs:{
+          theme : "material"
         }
     }
 </script>
@@ -121,5 +153,6 @@
 <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-glsl.min.js"></script>
 <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
 <script src="plugin/prism-treeview/prism-treeview.js"></script>
+<script src="functions.js"></script>
 </body>
 </html>
