@@ -73,14 +73,6 @@
                             '<div class="mermaid">' + mermaid.render('mermaid-svg-' + num++, code) + "</div>"
                         );
                     }
-                    // console.log(arguments)
-                    // console.log("code:" + code)
-                    // console.log("lang:" + lang)
-                    //
-                    // for (let i = 0; i < arguments.length; i++) {
-                    //     console.log(i + "=>" + arguments[i])
-                    // }
-                    // console.log(this)
                     if (arguments[1] === "java-s"){
                         arguments[1] = "java"
                         return "<div class='languageChangeAware-java'>" + this.origin.code.apply(this, arguments) + "</div>"

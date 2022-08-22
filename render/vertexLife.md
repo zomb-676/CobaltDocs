@@ -133,7 +133,7 @@ object VertexFillByBuffer {
 ```
 
 ```java-s
-@Suppress("unused")
+@SuppressWarnings("unused")
 @EventBusSubscriber(Dist.CLIENT)
 class VertexFillByBuffer {
 
@@ -187,7 +187,7 @@ object VertexFillByTesselator {
 ```
 
 ```java-s
-@Suppress("unused")
+@SuppressWarnings("unused")
 @EventBusSubscriber(Dist.CLIENT)
 class VertexFillByTesselator {
     @SubscribeEvent
@@ -195,8 +195,8 @@ class VertexFillByTesselator {
         if (Minecraft.getInstance().player.mainHandItem.item != Items.IRON_BLOCK) {
             return;
         }
-        var tesselator = Tesselator.getInstance();
-        var buffer = tesselator.builder;
+        final var tesselator = Tesselator.getInstance();
+        final var buffer = tesselator.builder;
         buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         RenderSystem.disableDepthTest();
@@ -248,26 +248,26 @@ fun dataFill(event: RenderLevelLastEvent, buffer: VertexConsumer, block:Block) {
 ```
 
 ```java-s
-public static void dataFill(RenderLevelLastEvent event, VertexConsumer, Block block) {
-    var stack = event.poseStack;
-    var cameraPos = Minecraft.getInstance().gameRenderer.mainCamera.position;
+public static void dataFill(RenderLevelLastEvent event, VertexConsumer buffer, Block block) {
+    final var stack = event.poseStack;
+    final var cameraPos = Minecraft.getInstance().gameRenderer.mainCamera.position;
     stack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
     var playerPos = Minecraft.getInstance().player.blockPosition();
-    var x = playerPos.x;
-    var y = playerPos.y;
-    var z = playerPos.z;
-    var pos = BlockPos.MutableBlockPos();
+    final var x = playerPos.x;
+    final var y = playerPos.y;
+    final var z = playerPos.z;
+    final var pos = BlockPos.MutableBlockPos();
     for (var dx = x - 15; dx < x + 15 ; dx++) {
         pos.x = dx;
         for (var dy = y - 15; dy< y + 15 ; dy++) {
             pos.y = dy;
             for (var dz = z - 15;dz <z + 15); dz++) {
                 pos.z = dz;
-                var blockState = Minecraft.getInstance().level.getBlockState(pos);
+                final var blockState = Minecraft.getInstance().level.getBlockState(pos);
                 if (blockState.block == block) {
                     stack.pushPose();
                     stack.translate(pos.x.toDouble(), pos.y.toDouble(), pos.z.toDouble());
-                    val lastPose = stack.last().pose();
+                    final val lastPose = stack.last().pose();
 
                     buffer.vertex(lastPose, 0f, 0f, 0f).color(1f, 0f, 0f, 0.75f).endVertex();
                     buffer.vertex(lastPose, 0f, 1f, 0f).color(0f, 1f, 0f, 0.75f).endVertex();

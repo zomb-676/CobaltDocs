@@ -448,12 +448,14 @@ class ColorfulBlockByBlockEntity : Block(Properties.of(Material.STONE)), EntityB
 ```java-s
 public class ColorfulBlockByBlockEntity extends Block implements EntityBlock {
 
-	//此处省略构造函数
+	public ColorfulBlockByBlockEntity() {
+		super(new Properties.of(Material.STONE));
+	}
 
     public static void registerColorHandle(ColorHandlerEvent.Block event) {
         event.blockColors.register((pState, pLevel, pPos, pTintIndex) -> {
                 if (pLevel != null && pPos != null) {
-                    var blockEntity = (ColorfulBlockEntity)pLevel.getBlockEntity(pPos);
+                    final var blockEntity = (ColorfulBlockEntity)pLevel.getBlockEntity(pPos);
                     //当方块被破坏后,由于需要渲染方块被破坏的粒子,此处会被调用  
                     //但是由于坐标所处的`BlockEntity`已经无法获取,所以会出错,需要额外判断
                     if(blockEntity != null){
@@ -462,12 +464,12 @@ public class ColorfulBlockByBlockEntity extends Block implements EntityBlock {
                 }
                 return 0xffffff;
             }, AllRegisters.colorfulBlockByBlockEntity.get()
-        )
+        );
     }
 
 	@Override
     public BlockEntity newBlockEntity(BlockPos pPos,BlockState pState) { 
-        return ColorfulBlockEntity(pPos, pState);
+        return new ColorfulBlockEntity(pPos, pState);
     }
     
 	@Override
@@ -475,17 +477,17 @@ public class ColorfulBlockByBlockEntity extends Block implements EntityBlock {
         if (pHand != InteractionHand.MAIN_HAND) {
             return super.use(pState, pLevel, pPos, pPlayer, pHand, pHit);
         }
-        var itemStack = pPlayer.getItemInHand(pHand);
+        final var itemStack = pPlayer.getItemInHand(pHand);
         if(itemStack.item instanceof ColorfulChalk item) {
-	        var blockEntity = (ColorfulBlockEntity)pLevel.getBlockEntity(pPos);
+	        final var blockEntity = ((ColorfulBlockEntity)(pLevel)).getBlockEntity(pPos);
 	        if (item != null) {
 	            if (!pLevel.isClientSide) {
-	                var color = item.getColor(itemStack);
+	                final var color = item.getColor(itemStack);
 	                blockEntity.color = color;
 	                return InteractionResult.SUCCESS;
 	            }
 	        } else {
-	            var color = Integer.toHexString(blockEntity.color);
+	            final var color = Integer.toHexString(blockEntity.color);
 	            if (pLevel.isClientSide) {
 	                pPlayer.sendMessage(TextComponent("client:entity color:$color"), Util.NIL_UUID);
 	            } else {
@@ -551,7 +553,7 @@ class ColorfulBlockEntity extends BlockEntity{
     
     public void setColor(color) {
         if(color < 0 && color > 0xffffff)
-            throw AssertionError("color:" + Integer.toHexString(value) + "} not range in 0 to 0xffffff");
+            throw new AssertionError("color:" + Integer.toHexString(value) + "} not range in 0 to 0xffffff");
         if(this.color != color) {
             this.color = color;
             if(level == null) {
@@ -574,7 +576,7 @@ class ColorfulBlockEntity extends BlockEntity{
 	
 	@Override
 	public CompoundTag getUpdateTag() {
-		var tag = CompoundTag();
+		final var tag = CompoundTag();
 		tag.putInt("color",color);
 		return tag;
 	}
@@ -586,7 +588,7 @@ class ColorfulBlockEntity extends BlockEntity{
 
 	@Override
 	public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt){
-		var color = pkt.tag.getInt("color"); //两个参数都可能为空
+		final var color = pkt.tag.getInt("color"); //两个参数都可能为空
 		this.color = color;
 	}	
 }

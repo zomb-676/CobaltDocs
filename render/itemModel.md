@@ -137,19 +137,19 @@ fun setItemOverride(event: FMLClientSetupEvent) {
 private Item whetherIndicator = ITEM.register("weather_indicator", () -> new Item(Properties().tab(creativeTab)) {
 	@Override
 	public bool isFoil(pStack: ItemStack) {
-		var level = Minecraft.getInstance().level
-		if (Thread.currentThread().threadGroup ==SidedThreadGroups.SERVER || (level != null && level.isThundering)) {
+		final var level = Minecraft.getInstance().level
+		if (Thread.currentThread().threadGroup == SidedThreadGroups.SERVER || (level != null && level.isThundering)) {
 			return true;
 		}else {
-			super.isFoil(pStack);
+			return super.isFoil(pStack);
 		}
 	}
 });
 
 public static void setItemOverride(FMLClientSetupEvent event) {
-    ItemProperties.register(whetherIndicator.get(), ResourceLocation(Cobalt.MOD_ID, "weather"),
-        (ItemStack itemStack, _, LivingEntity livingEntity, int seed) -> {
-	        var clientLevel = Minecraft.getInstance().level;
+    ItemProperties.register(whetherIndicator.get(), new ResourceLocation(Cobalt.MOD_ID, "weather"),
+        (ItemStack itemStack, __, LivingEntity livingEntity, int seed) -> {
+	        final var clientLevel = Minecraft.getInstance().level;
 	        if (clientLevel == null){
 	            return 0f;
 	        }else{
@@ -373,12 +373,12 @@ class ColorfulChalk extends Item {
 	}
 
     public void setColor(ItemStack itemStack, int color) {
-        var nbt = IntTag.valueOf(color);
+        final var nbt = IntTag.valueOf(color);
         itemStack.addTagElement("color", nbt);
     }
 
     public int getColor(ItemStack itemStack) {
-        var tag = itemStack.tag;
+        final var tag = itemStack.tag;
         if(tag != null && tag.get("color") instanceof IntTag colorTag) {
             return colorTag.asInt;
         }else {
@@ -403,7 +403,7 @@ fun registerColorHandle(event: ColorHandlerEvent.Item) {
 
 ```java-s
 public static void registerColorHandle(ColorHandlerEvent.Item event) {
-    event.itemColors.register((pStack,__) -> ((ColorfulChalk)pStack.item).getColor(pStack), colorfulChalk.get());
+    event.itemColors.register((pStack,__) -> ((ColorfulChalk)(pStack.item)).getColor(pStack), colorfulChalk.get());
 }
 ```
 
@@ -440,13 +440,13 @@ public static void registerCommand(RegisterCommandsEvent event) {
     event.dispatcher.register(LiteralArgumentBuilder.literal<CommandSourceStack>("setColor").then(
         Commands.argument("color",new HexArgumentType(0,0xffffff))
             .executes( ctx ->
-                var color = ctx.getArgument("color", Int::class.java);
-                var source = ctx.source;
-                var entity = source.entity;
-                if (entity instanceof Player) {
-                    var itemStack = entity.mainHandItem;
-                    if (itemStack.item instanceof ColorfulChalk) {
-                        (itemStack.item as ColorfulChalk).setColor(itemStack, color);
+                final var color = ctx.getArgument("color", Int::class.java);
+                final var source = ctx.source;
+                final var entity = source.entity;
+                if (entity instanceof Player player) {
+                    final var itemStack = player.mainHandItem;
+                    if (itemStack.item instanceof ColorfulChalk colorfulChalkItem) {
+                        colorfulChalkItem.setColor(itemStack, color);
                         source.sendSuccess(new TextComponent("successfully set color"), true);
                     } else {
                         source.sendFailure(new TextComponent("main hand isn't holding colorfulChalk"));
@@ -538,19 +538,19 @@ class HexArgumentType extends ArgumentType<Integer> {
     private int minimum = Integer.MAX_VALUE;
     private int maximum = Integer.MAX_VALUE;
     
-    private static List<Integer> example = List.of("0xffffff", "0xff00ff");
+    private static List<String> example = List.of("0xffffff", "0xff00ff");
     private static DynamicCommandExceptionType hexSynaxErrorType = new DynamicCommandExceptionType ( value ->
         new LiteralMessage("hex number must begin witch 0x instead of " + value)
     );
-    private SimpleCommandExceptionType readerExpectedStartOf0x = new SimpleCommandExceptionType(new LiteralMessage("expected start with 0x"));
-    private SimpleCommandExceptionType noHexInputType = new SimpleCommandExceptionType(new LiteralMessage("please enter number"));
+    private static SimpleCommandExceptionType readerExpectedStartOf0x = new SimpleCommandExceptionType(new LiteralMessage("expected start with 0x"));
+    private static SimpleCommandExceptionType noHexInputType = new SimpleCommandExceptionType(new LiteralMessage("please enter number"));
 
 	@Override
     public int parse(StringReader reader) throws CommandSyntaxException {
         var cursor = reader.cursor;
         try {
-            var first = reader.read();
-            var second = reader.read();
+            final var first = reader.read();
+            final var second = reader.read();
             if (first != '0' || second != 'x') {
                 reader.cursor = cursor;
                 throw hexSynaxErrorType.createWithContext(reader, first + "" +second);
@@ -562,10 +562,10 @@ class HexArgumentType extends ArgumentType<Integer> {
         String result;
         try {
             result = reader.readString();
-        }catch (e:Exception){
+        }catch (Exception e){
             throw noHexInputType.create();
         }
-        var resultNum = Integer.parseInt(result,16);
+        final var resultNum = Integer.parseInt(result,16);
         if (resultNum < minimum) {
             reader.cursor = cursor;
             throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.integerTooLow().createWithContext(reader, result, minimum);
@@ -594,9 +594,9 @@ class HexArgumentType extends ArgumentType<Integer> {
         if (minimum == Int.MIN_VALUE && maximum == Int.MAX_VALUE) {
             return "integer()";
         } else if (maximum == Int.MAX_VALUE) {
-            return "integer(" + "minimum + ")";
+            return "integer(" + minimum + ")";
         } else {
-            return "integer(" + "minimum" + ", " +maximum + ")";
+            return "integer(" + minimum + ", " + maximum + ")";
         }
     }
 
@@ -637,11 +637,11 @@ fun setBakedModel(event: ModelBakeEvent){
 
 ```java-s
 public void setBakedModel(ModelBakeEvent event){
-    var modelResourceLocation = new ModelResourceLocation(AllRegisters.drawableChalk.get().registryName,"inventory");
-    var model = event.modelRegistry.get(modelResourceLocation);
-    event.modelRegistry.set(modelResourceLocation) = new BakedModelWrapper<BakedModel>(model) {
+    final var modelResourceLocation = new ModelResourceLocation(AllRegisters.drawableChalk.get().registryName,"inventory");
+    final var model = event.getModelRegistry().get(modelResourceLocation);
+    event.modelRegistry.put(modelResourceLocation , new BakedModelWrapper<BakedModel>(model) {
         @Override public ItemOverrides getOverrides() { return new OverrideItemOverrides();)
-    };
+    });
 }
 ```
 
@@ -684,7 +684,7 @@ class OverrideModelLoader extends IModelLoader<OverrideModelGeometry> {
 
     public static void registerModelLoader(ModelRegistryEvent event) {
         ModelLoaderRegistry.registerLoader(
-            ResourceLocation(Cobalt.MOD_ID, "override_loader"),
+            new ResourceLocation(Cobalt.MOD_ID, "override_loader"),
             new OverrideModelLoader()
         );
     }
@@ -695,7 +695,7 @@ class OverrideModelLoader extends IModelLoader<OverrideModelGeometry> {
     @Override
     public OverrideModelGeometry read(JsonDeserializationContext deserializationContext, JsonObject modelContents) {
         modelContents.remove("loader");
-        var model = deserializationContext.deserialize<BlockModel>(modelContents, BlockModel.class);
+        final var model = deserializationContext.deserialize<BlockModel>(modelContents, BlockModel.class);
         return new OverrideModelGeometry(model);
     }
 
@@ -744,10 +744,10 @@ class OverrideModelGeometry extends IModelGeometry<OverrideModelGeometry> {
     @Override
     public BakedModel bake(IModelConfiguration owner,ModelBakery bakery,Function<Material, TextureAtlasSprite> spriteGetter,
         ModelState modelTransform,ItemOverrides overrides,ResourceLocation modelLocation) {
-        var delegateModel = delegate.bake(
+        final var delegateModel = delegate.bake(
             bakery, delegate, spriteGetter, modelTransform, modelLocation, delegate.guiLight.lightLikeBlock()
         );
-        return OverrideWrappedBakedModel(delegateModel, new OverrideItemOverrides());
+        return new OverrideWrappedBakedModel(delegateModel, new OverrideItemOverrides());
     }
 
     @Override
@@ -804,9 +804,7 @@ class OverrideItemOverrides : ItemOverrides() {
         return if (blockState!=null){
             val modelManager = Minecraft.getInstance().modelManager
             val location = BlockModelShaper.stateToModelLocation(blockState)
-            val model = modelManager.getModel(location)
-            val quads = model.getQuads(null, null, Random(), EmptyModelData.INSTANCE)
-            model
+            return modelManager.getModel(location)
         }else{
             pModel
         }
@@ -817,18 +815,16 @@ class OverrideItemOverrides : ItemOverrides() {
 ```java-s
 class OverrideItemOverrides extends ItemOverrides {
 
-	public static List<BakedModel> cache = List.of<>();
+	public static List<BakedModel> cache = List.of();
 
     @Override
     public BakedModel resolve(BakedModel pModel,ItemStack pStack,ClientLevel pLevel,LivingEntity pEntity,Int pSeed) {
-        var item = (DrawableChalk) pStack.item; 
-        var blockState = item.getBlockState(pStack);
+        final var item = (DrawableChalk) pStack.item; 
+        final var blockState = item.getBlockState(pStack);
         if (blockState != null){
-            val modelManager = Minecraft.getInstance().modelManager;
-            val location = BlockModelShaper.stateToModelLocation(blockState);
-            val model = modelManager.getModel(location);
-            val quads = model.getQuads(null, null, new Random(), EmptyModelData.INSTANCE);
-            return model;
+            final var modelManager = Minecraft.getInstance().modelManager;
+            final var location = BlockModelShaper.stateToModelLocation(blockState);
+            return modelManager.getModel(location);
         }else{
             return pModel;
         }

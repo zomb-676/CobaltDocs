@@ -19,8 +19,8 @@ blockRenderer.renderSingleBlock(blockstate,pPoseStack, pBufferSource, pPackedLig
 ```
 
 ```java-s
-var blockRenderer = Minecraft.getInstance().blockRenderer;
-var blockstate = Blocks.ANVIL.defaultBlockState();
+final var blockRenderer = Minecraft.getInstance().blockRenderer;
+final var blockstate = Blocks.ANVIL.defaultBlockState();
 blockRenderer.renderSingleBlock(blockstate,pPoseStack, pBufferSource, pPackedLight
     , pPackedOverlay,EmptyModelData.INSTANCE);
 ```
@@ -45,9 +45,9 @@ blockRenderer.modelRenderer.renderModel(pPoseStack.last(),
 ```
 
 ```java-s
-var blockRenderer = Minecraft.getInstance().blockRenderer;
-var blockstate = Blocks.ANVIL.defaultBlockState();
-var model = blockRenderer.getBlockModel(blockstate);
+final var blockRenderer = Minecraft.getInstance().blockRenderer;
+final var blockstate = Blocks.ANVIL.defaultBlockState();
+final var model = blockRenderer.getBlockModel(blockstate);
 blockRenderer.modelRenderer.renderModel(pPoseStack.last(),
     pBufferSource.getBuffer(RenderType.solid()),
     blockstate, model,
@@ -77,7 +77,7 @@ blockRenderer.modelRenderer.renderModel(pPoseStack.last(),
 ```kotlin-s
 val itemRenderer = Minecraft.getInstance().itemRenderer
 val itemStack = ItemStack(Items.IRON_PICKAXE) // need cache
-val model =itemRenderer.getModel(itemStack,pBlockEntity.level,null,0)
+val model = itemRenderer.getModel(itemStack,pBlockEntity.level,null,0)
 itemRenderer.render(
     itemStack,ItemTransforms.TransformType.GROUND,/*left hand*/false,pPoseStack,
     pBufferSource,pPackedLight,pPackedOverlay,model
@@ -85,9 +85,9 @@ itemRenderer.render(
 ```
 
 ```java-s
-var itemRenderer = Minecraft.getInstance().itemRenderer;
-var itemStack = ItemStack(Items.IRON_PICKAXE); // need cache
-var model =itemRenderer.getModel(itemStack,pBlockEntity.level,null,0);
+final var itemRenderer = Minecraft.getInstance().itemRenderer;
+final var itemStack = ItemStack(Items.IRON_PICKAXE); // need cache
+final var model = itemRenderer.getModel(itemStack,pBlockEntity.level,null,0);
 itemRenderer.render(
     itemStack,ItemTransforms.TransformType.GROUND,/*left hand*/false,pPoseStack,
     pBufferSource,pPackedLight,pPackedOverlay,model
@@ -139,16 +139,16 @@ buffer.vertex(matrix,1f,0f,0f)
 ```
 
 ```java-s
-var renderType = RenderType.translucent();
-var buffer = pBufferSource.getBuffer(renderType);
-var pos = pBlockEntity.blockPos;
-var atlas = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(Fluids.WATER.attributes.stillTexture);
-var color = Fluids.WATER.attributes.color;
-var r = color >> 16 & 255;
-var g = color >> 8 & 255;
-var b = color & 255;
-var alpha = color >> 24 & 255;
-var matrix = pPoseStack.last().pose();
+final var renderType = RenderType.translucent();
+final var buffer = pBufferSource.getBuffer(renderType);
+final var pos = pBlockEntity.blockPos;
+final var atlas = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(Fluids.WATER.attributes.stillTexture);
+final var color = Fluids.WATER.attributes.color;
+final var r = color >> 16 & 255;
+final var g = color >> 8 & 255;
+final var b = color & 255;
+final var alpha = color >> 24 & 255;
+final var matrix = pPoseStack.last().pose();
 buffer.vertex(matrix,0f,0f,0f)
     .color(r,g,b,alpha)
     .uv(atlas.u0,atlas.v0)

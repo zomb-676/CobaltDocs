@@ -151,7 +151,7 @@ object VertexFillByRenderType {
 ```
 
 ```java-s
-@Suppress("unused")
+@SuppressWarnings("unused")
 @Mod.EventBusSubscriber(Dist.CLIENT)
 class VertexFillByRenderType {
 
@@ -161,7 +161,7 @@ class VertexFillByRenderType {
             throw new RuntimeException("never should run to there");
         }
     
-        @Suppress("INACCESSIBLE_TYPE")
+        @SuppressWarnings("INACCESSIBLE_TYPE")
         public static RenderType renderType = create(
             "posColorRenderType", DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 256, false, false,
             CompositeState.builder()
@@ -178,8 +178,8 @@ class VertexFillByRenderType {
         if (Minecraft.getInstance().player.mainHandItem.item != Items.ANVIL) {
             return;
         }
-        var bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-        var buffer = bufferSource.getBuffer(RenderTypeHolder.renderType);
+        final var bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
+        final var buffer = bufferSource.getBuffer(RenderTypeHolder.renderType);
         dataFill(event,buffer,Blocks.ANVIL);
         RenderSystem.disableDepthTest();
         bufferSource.endBatch(RenderTypeHolder.renderType);
