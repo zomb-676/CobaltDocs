@@ -451,12 +451,12 @@ public class ColorfulBlockByBlockEntity extends Block implements EntityBlock {
 	//此处省略构造函数
 
     public static void registerColorHandle(ColorHandlerEvent.Block event) {
-        event.blockColors.register({pState, pLevel, pPos, pTintIndex ->
+        event.blockColors.register((pState, pLevel, pPos, pTintIndex) -> {
                 if (pLevel != null && pPos != null) {
-                    var blockEntity =(ColorfulBlockEntity)pLevel.getBlockEntity(pPos)
+                    var blockEntity = (ColorfulBlockEntity)pLevel.getBlockEntity(pPos);
                     //当方块被破坏后,由于需要渲染方块被破坏的粒子,此处会被调用  
                     //但是由于坐标所处的`BlockEntity`已经无法获取,所以会出错,需要额外判断
-                    if(blockEntity !=null){
+                    if(blockEntity != null){
                         return blockEntity.color;
                     }
                 }
@@ -471,14 +471,7 @@ public class ColorfulBlockByBlockEntity extends Block implements EntityBlock {
     }
     
 	@Override
-    public InteractionResult use(
-        BlockState pState,
-        Level pLevel,
-        BlockPos pPos,
-        Player pPlayer,
-        InteractionHand pHand,
-        BlockHitResult pHit
-    ){
+    public InteractionResult use(BlockState pState,Level pLevel,BlockPos pPos,Player pPlayer,InteractionHand pHand,BlockHitResult pHit){
         if (pHand != InteractionHand.MAIN_HAND) {
             return super.use(pState, pLevel, pPos, pPlayer, pHand, pHit);
         }
@@ -487,7 +480,7 @@ public class ColorfulBlockByBlockEntity extends Block implements EntityBlock {
 	        var blockEntity = (ColorfulBlockEntity)pLevel.getBlockEntity(pPos);
 	        if (item != null) {
 	            if (!pLevel.isClientSide) {
-	                val color = item.getColor(itemStack);
+	                var color = item.getColor(itemStack);
 	                blockEntity.color = color;
 	                return InteractionResult.SUCCESS;
 	            }
@@ -558,7 +551,7 @@ class ColorfulBlockEntity extends BlockEntity{
     
     public void setColor(color) {
         if(color < 0 && color > 0xffffff)
-            throw AssertionError("color:${Integer.toHexString(value)} not range in 0 to 0xffffff");
+            throw AssertionError("color:" + Integer.toHexString(value) + "} not range in 0 to 0xffffff");
         if(this.color != color) {
             this.color = color;
             if(level == null) {
@@ -569,7 +562,7 @@ class ColorfulBlockEntity extends BlockEntity{
                     worldPosition.x, worldPosition.y, worldPosition.z, worldPosition.x, worldPosition.y, worldPosition.z
                  );                
             }else {
-                level.sendBlockUpdated(worldPosition, blockState, blockState, 1)
+                level.sendBlockUpdated(worldPosition, blockState, blockState, 1);
             }
         }
     }
@@ -630,11 +623,9 @@ RegistryObject<BlockItem> colorfulBlockByBlockEntityItem = ITEM.register("colorf
     () -> new BlockItem(colorfulBlockByBlockEntity.get(), Item.Properties().tab(creativeTab))
 );
 
-RegistryObject<BlockEntityType<ColorfulBlockByBlockEntity>> colorfulBlockEntityType = BLOCKENTITY_TYPE.register("colorful_block") ,
-    () -> BlockEntityType.Builder.of({ pos, state ->
-        ColorfulBlockEntity(pos, state)
-    }, colorfulBlockByBlockEntity.get()).build(Util.fetchChoiceType(References.BLOCK_ENTITY, "colorful_block"))
-);
+RegistryObject<BlockEntityType<ColorfulBlockByBlockEntity>> colorfulBlockEntityType 
+	= BLOCKENTITY_TYPE.register("colorful_block") , () -> BlockEntityType.Builder.of(ColorfulBlockEntity::new,
+      colorfulBlockByBlockEntity.get()).build(Util.fetchChoiceType(References.BLOCK_ENTITY, "colorful_block")));
 ```
 
 #### **Block Json Model**

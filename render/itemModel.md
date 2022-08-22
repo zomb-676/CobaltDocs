@@ -325,14 +325,13 @@ fun registerColorHandle(event: ColorHandlerEvent.Item) {
 
 ```java-s
 public static void registerColorHandle(ColorHandlerEvent.Item event) {
-    event.itemColors.register({ pStack, pTintIndex ->
-        return switch(pStack.item){
+    event.itemColors.register((pStack, pTintIndex) ->
+        switch(pStack.item){
             case redChalk.get() -> MaterialColor.COLOR_RED;
             case greenChalk.get() -> MaterialColor.COLOR_GREEN;
             case blueChalk.get() -> MaterialColor.COLOR_BLUE;
-            case else -> MaterialColor.COLOR_BLACK;
-        }.col;
-    }, redChalk.get(), greenChalk.get(), blueChalk.get());
+            default -> MaterialColor.COLOR_BLACK;
+        }.col, redChalk.get(), greenChalk.get(), blueChalk.get());
 }
 ```
 
@@ -380,7 +379,7 @@ class ColorfulChalk extends Item {
 
     public int getColor(ItemStack itemStack) {
         var tag = itemStack.tag;
-        if(tag =! null && tag.get("color") instanceof IntTag colorTag) {
+        if(tag != null && tag.get("color") instanceof IntTag colorTag) {
             return colorTag.asInt;
         }else {
             return 0xffffff;
@@ -404,9 +403,7 @@ fun registerColorHandle(event: ColorHandlerEvent.Item) {
 
 ```java-s
 public static void registerColorHandle(ColorHandlerEvent.Item event) {
-    event.itemColors.register({pStack,_ ->
-        ((ColorfulChalk)pStack.item).getColor(pStack)
-    }, colorfulChalk.get());
+    event.itemColors.register((pStack,__) -> ((ColorfulChalk)pStack.item).getColor(pStack), colorfulChalk.get());
 }
 ```
 
@@ -440,9 +437,9 @@ fun registerCommand(event: RegisterCommandsEvent) {
 
 ```java-s
 public static void registerCommand(RegisterCommandsEvent event) {
-    event.dispatcher.register(LiteralArgumentBuilder.literal<CommandSourceStack?>("setColor").then(
+    event.dispatcher.register(LiteralArgumentBuilder.literal<CommandSourceStack>("setColor").then(
         Commands.argument("color",new HexArgumentType(0,0xffffff))
-            .executes { ctx ->
+            .executes( ctx ->
                 var color = ctx.getArgument("color", Int::class.java);
                 var source = ctx.source;
                 var entity = source.entity;
@@ -450,15 +447,15 @@ public static void registerCommand(RegisterCommandsEvent event) {
                     var itemStack = entity.mainHandItem;
                     if (itemStack.item instanceof ColorfulChalk) {
                         (itemStack.item as ColorfulChalk).setColor(itemStack, color);
-                        source.sendSuccess(TextComponent("successfully set color"), true);
+                        source.sendSuccess(new TextComponent("successfully set color"), true);
                     } else {
-                        source.sendFailure(TextComponent("main hand isn't holding colorfulChalk"));
+                        source.sendFailure(new TextComponent("main hand isn't holding colorfulChalk"));
                     }
                 }else{
-                    source.sendFailure(TextComponent("sender is not a player"));
+                    source.sendFailure(new TextComponent("sender is not a player"));
                 }
                 return 0;
-            }
+            )
     ));
 }
 ```
@@ -541,28 +538,28 @@ class HexArgumentType extends ArgumentType<Integer> {
     private int minimum = Integer.MAX_VALUE;
     private int maximum = Integer.MAX_VALUE;
     
-    private static List<Integer> example = mutableListOf("0xffffff", "0xff00ff");
-    private static DynamicCommandExceptionType hexSynaxErrorType = DynamicCommandExceptionType ( value ->
-        LiteralMessage("hex number must begin witch 0x instead of " + value)
+    private static List<Integer> example = List.of("0xffffff", "0xff00ff");
+    private static DynamicCommandExceptionType hexSynaxErrorType = new DynamicCommandExceptionType ( value ->
+        new LiteralMessage("hex number must begin witch 0x instead of " + value)
     );
-    private SimpleCommandExceptionType readerExpectedStartOf0x = SimpleCommandExceptionType(LiteralMessage("expected start with 0x"))
-    private SimpleCommandExceptionType noHexInputType = SimpleCommandExceptionType(LiteralMessage("please enter number"))
+    private SimpleCommandExceptionType readerExpectedStartOf0x = new SimpleCommandExceptionType(new LiteralMessage("expected start with 0x"));
+    private SimpleCommandExceptionType noHexInputType = new SimpleCommandExceptionType(new LiteralMessage("please enter number"));
 
 	@Override
-    public int parse(reader: StringReader) throws CommandSyntaxException {
+    public int parse(StringReader reader) throws CommandSyntaxException {
         var cursor = reader.cursor;
         try {
             var first = reader.read();
             var second = reader.read();
             if (first != '0' || second != 'x') {
                 reader.cursor = cursor;
-                throw new hexSynaxErrorType.createWithContext(reader, first + "" +second);
+                throw hexSynaxErrorType.createWithContext(reader, first + "" +second);
             }
         } catch (Exception e) {
             throw readerExpectedStartOf0x.create();
         }
         cursor += 2;
-        var result :String;
+        String result;
         try {
             result = reader.readString();
         }catch (e:Exception){
@@ -604,7 +601,7 @@ class HexArgumentType extends ArgumentType<Integer> {
     }
 
 	@Override
-    public MutableCollection<String> getExamples() {
+    public Collection<String> getExamples() {
         return example;
     }
 
@@ -643,7 +640,7 @@ public void setBakedModel(ModelBakeEvent event){
     var modelResourceLocation = new ModelResourceLocation(AllRegisters.drawableChalk.get().registryName,"inventory");
     var model = event.modelRegistry.get(modelResourceLocation);
     event.modelRegistry.set(modelResourceLocation) = new BakedModelWrapper<BakedModel>(model) {
-        @Override public ItemOverrides getOverrides() { return OverrideItemOverrides();)
+        @Override public ItemOverrides getOverrides() { return new OverrideItemOverrides();)
     };
 }
 ```
@@ -698,8 +695,8 @@ class OverrideModelLoader extends IModelLoader<OverrideModelGeometry> {
     @Override
     public OverrideModelGeometry read(JsonDeserializationContext deserializationContext, JsonObject modelContents) {
         modelContents.remove("loader");
-        var model = deserializationContext.deserialize<BlockModel>(modelContents, BlockModel::class.java);
-        return OverrideModelGeometry(model);
+        var model = deserializationContext.deserialize<BlockModel>(modelContents, BlockModel.class);
+        return new OverrideModelGeometry(model);
     }
 
 }
@@ -738,7 +735,7 @@ class OverrideModelGeometry(val delegate: BlockModel) : IModelGeometry<OverrideM
 ```java-s
 class OverrideModelGeometry extends IModelGeometry<OverrideModelGeometry> {
 	
-	delegate: BlockModel;
+	BlockModel delegate;
 	
 	OverrideModelGeometry(BlockModel delegate) {
 		this.delegate = delegate;
@@ -750,7 +747,7 @@ class OverrideModelGeometry extends IModelGeometry<OverrideModelGeometry> {
         var delegateModel = delegate.bake(
             bakery, delegate, spriteGetter, modelTransform, modelLocation, delegate.guiLight.lightLikeBlock()
         );
-        return OverrideWrappedBakedModel(delegateModel, OverrideItemOverrides());
+        return OverrideWrappedBakedModel(delegateModel, new OverrideItemOverrides());
     }
 
     @Override
@@ -774,7 +771,7 @@ class OverrideWrappedBakedModel(originalModel: BakedModel, private val overrides
 ```java-s
 class OverrideWrappedBakedModel extends BakedModelWrapper<BakedModel> {
     
-    private OverrideItemOverrides overrides;
+    private final OverrideItemOverrides overrides;
     
     public OverrideWrappedBakedModel(originalModel BakedModel, OverrideItemOverrides overrides){
         this.overrides = overrides;
@@ -818,19 +815,19 @@ class OverrideItemOverrides : ItemOverrides() {
 ```
 
 ```java-s
-class OverrideItemOverrides extends ItemOverrides() {
+class OverrideItemOverrides extends ItemOverrides {
 
-	static List<BakedModel> cache = mutableListOf<>();
+	public static List<BakedModel> cache = List.of<>();
 
     @Override
     public BakedModel resolve(BakedModel pModel,ItemStack pStack,ClientLevel pLevel,LivingEntity pEntity,Int pSeed) {
         var item = (DrawableChalk) pStack.item; 
         var blockState = item.getBlockState(pStack);
-        if (blockState!=null){
+        if (blockState != null){
             val modelManager = Minecraft.getInstance().modelManager;
             val location = BlockModelShaper.stateToModelLocation(blockState);
             val model = modelManager.getModel(location);
-            val quads = model.getQuads(null, null, Random(), EmptyModelData.INSTANCE);
+            val quads = model.getQuads(null, null, new Random(), EmptyModelData.INSTANCE);
             return model;
         }else{
             return pModel;
@@ -916,7 +913,7 @@ override fun initializeClient(consumer: Consumer<IItemRenderProperties>) {
 
 ```java-s
 @Override
-public void initializeClient(consumer: Consumer<IItemRenderProperties>) {
+public void initializeClient(Consumer<IItemRenderProperties> consumer) {
     consumer.accept(new IItemRenderProperties {
         @Override
         public BlockEntityWithoutLevelRenderer getItemStackRenderer() {
@@ -929,8 +926,8 @@ public void initializeClient(consumer: Consumer<IItemRenderProperties>) {
                 ) {
                     //do anything you want to do
                 }
-            }
+            };
         }
-    })
+    });
 }
 ```

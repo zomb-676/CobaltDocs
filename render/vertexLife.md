@@ -137,7 +137,7 @@ object VertexFillByBuffer {
 @EventBusSubscriber(Dist.CLIENT)
 class VertexFillByBuffer {
 
-    private static val buffer = new BufferBuilder(/*pCapacity*/ 256);
+    private static BufferBuilder buffer = new BufferBuilder(/*pCapacity*/ 256);
 
     @SubscribeEvent
     public static void renderLevelLastEvent(RenderLevelLastEvent event) {
@@ -195,8 +195,8 @@ class VertexFillByTesselator {
         if (Minecraft.getInstance().player.mainHandItem.item != Items.IRON_BLOCK) {
             return;
         }
-        val tesselator = Tesselator.getInstance()
-        val buffer = tesselator.builder;;
+        var tesselator = Tesselator.getInstance();
+        var buffer = tesselator.builder;
         buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         RenderSystem.disableDepthTest();
@@ -213,7 +213,7 @@ class VertexFillByTesselator {
 #### **dataFill fun**
 
 ```kotlin-s
-fun dataFill(event: RenderLevelLastEvent, buffer: VertexConsumer,block:Block) {
+fun dataFill(event: RenderLevelLastEvent, buffer: VertexConsumer, block:Block) {
     val stack = event.poseStack
     val cameraPos = Minecraft.getInstance().gameRenderer.mainCamera.position
     stack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z)
@@ -252,7 +252,7 @@ public static void dataFill(RenderLevelLastEvent event, VertexConsumer, Block bl
     var stack = event.poseStack;
     var cameraPos = Minecraft.getInstance().gameRenderer.mainCamera.position;
     stack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
-    var playerPos = Minecraft.getInstance().player!!.blockPosition();
+    var playerPos = Minecraft.getInstance().player.blockPosition();
     var x = playerPos.x;
     var y = playerPos.y;
     var z = playerPos.z;

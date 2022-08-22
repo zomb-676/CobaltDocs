@@ -155,10 +155,10 @@ object VertexFillByRenderType {
 @Mod.EventBusSubscriber(Dist.CLIENT)
 class VertexFillByRenderType {
 
-    private class RenderTypeHolder extends RenderType("any", DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 256, false, false, {}, {}) {
+    private class RenderTypeHolder extends RenderType {
         
-        public RenderTypeHolder(){
-            throw RuntimeException("never should run to there");
+        public RenderTypeHolder() {
+            throw new RuntimeException("never should run to there");
         }
     
         @Suppress("INACCESSIBLE_TYPE")
