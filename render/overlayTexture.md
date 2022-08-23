@@ -89,7 +89,7 @@ default VertexConsumer overlayCoords(int pOverlayUV) {
     MAXSTACK = 4
     MAXLOCALS = 2
 ```
-可以发现是`65536`,即`0xff`  
+可以发现是`65535`,即`0xffff`  
 该函数的处理参数与`OverlayTexture#pack`作用相反  
 
 ---

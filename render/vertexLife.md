@@ -267,7 +267,7 @@ public static void dataFill(RenderLevelLastEvent event, VertexConsumer buffer, B
                 if (blockState.block == block) {
                     stack.pushPose();
                     stack.translate(pos.x.toDouble(), pos.y.toDouble(), pos.z.toDouble());
-                    final val lastPose = stack.last().pose();
+                    final var lastPose = stack.last().pose();
 
                     buffer.vertex(lastPose, 0f, 0f, 0f).color(1f, 0f, 0f, 0.75f).endVertex();
                     buffer.vertex(lastPose, 0f, 1f, 0f).color(0f, 1f, 0f, 0.75f).endVertex();

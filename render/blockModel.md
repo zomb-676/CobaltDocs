@@ -455,7 +455,7 @@ public class ColorfulBlockByBlockEntity extends Block implements EntityBlock {
     public static void registerColorHandle(ColorHandlerEvent.Block event) {
         event.blockColors.register((pState, pLevel, pPos, pTintIndex) -> {
                 if (pLevel != null && pPos != null) {
-                    final var blockEntity = (ColorfulBlockEntity)pLevel.getBlockEntity(pPos);
+                    final var blockEntity = ((ColorfulBlockEntity)(pLevel)).getBlockEntity(pPos);
                     //当方块被破坏后,由于需要渲染方块被破坏的粒子,此处会被调用  
                     //但是由于坐标所处的`BlockEntity`已经无法获取,所以会出错,需要额外判断
                     if(blockEntity != null){
@@ -551,7 +551,7 @@ class ColorfulBlockEntity extends BlockEntity{
         return color;
     }
     
-    public void setColor(color) {
+    public void setColor(int color) {
         if(color < 0 && color > 0xffffff)
             throw new AssertionError("color:" + Integer.toHexString(value) + "} not range in 0 to 0xffffff");
         if(this.color != color) {
@@ -571,7 +571,7 @@ class ColorfulBlockEntity extends BlockEntity{
 
 	@Override
     public Packet<ClientGamePacketListener> getUpdatePacket() {
-        ClientboundBlockEntityDataPacket.create(this);
+        return ClientboundBlockEntityDataPacket.create(this);
 	}
 	
 	@Override
@@ -622,7 +622,7 @@ RegistryObject<ColorfulBlockByBlockEntity> colorfulBlockByBlockEntity
 	= BLOCK.register("colorful_chalk_by_block_entity",ColorfulBlockByBlockEntity::new);
 
 RegistryObject<BlockItem> colorfulBlockByBlockEntityItem = ITEM.register("colorful_chalk_by_block_entity",
-    () -> new BlockItem(colorfulBlockByBlockEntity.get(), Item.Properties().tab(creativeTab))
+    () -> new BlockItem(colorfulBlockByBlockEntity.get(), new Item.Properties().tab(creativeTab))
 );
 
 RegistryObject<BlockEntityType<ColorfulBlockByBlockEntity>> colorfulBlockEntityType 

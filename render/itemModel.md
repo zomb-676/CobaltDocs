@@ -54,7 +54,7 @@ private val whetherIndicator = ITEM.register("weather_indicator") { Item(Item.Pr
 
 ```java-s
 private DeferredRegister<Item> ITEM = DeferredRegister.create(ForgeRegistries.ITEMS, Cobalt.MOD_ID);
-private RegistryObject<Item> whetherIndicator = ITEM.register("weather_indicator", () -> new Item(Item.Properties().tab(creativeTab)));
+private RegistryObject<Item> whetherIndicator = ITEM.register("weather_indicator", () -> new Item(new Item.Properties().tab(creativeTab)));
 ```
 
 上述文件结构中`weather_indicator.json`尚未编写,其他json模型,都由`blockBench`生成  
@@ -107,7 +107,7 @@ private val whetherIndicator = ITEM.register("weather_indicator"){
         override fun isFoil(pStack: ItemStack): Boolean {
             return if (Thread.currentThread().threadGroup == SidedThreadGroups.SERVER||Minecraft.getInstance().level?.isThundering == true){
                 true
-            }else{
+            } else {
                 super.isFoil(pStack)
             }
         }
@@ -116,7 +116,7 @@ private val whetherIndicator = ITEM.register("weather_indicator"){
 
 fun setItemOverride(event: FMLClientSetupEvent) {
     ItemProperties.register(whetherIndicator.get(), ResourceLocation(Cobalt.MOD_ID, "weather"))
-    { itemStack: ItemStack, _: ClientLevel?, livingEntity: LivingEntity?, seed: Int ->
+    { itemStack, _, livingEntity, seed ->
         val clientLevel = Minecraft.getInstance().level
         if (clientLevel == null) {
             0f
@@ -134,13 +134,13 @@ fun setItemOverride(event: FMLClientSetupEvent) {
 ```
 
 ```java-s
-private Item whetherIndicator = ITEM.register("weather_indicator", () -> new Item(Properties().tab(creativeTab)) {
+private Item whetherIndicator = ITEM.register("weather_indicator", () -> new Item(new Properties().tab(creativeTab)) {
 	@Override
-	public bool isFoil(pStack: ItemStack) {
+	public bool isFoil(ItemStack pStack) {
 		final var level = Minecraft.getInstance().level
 		if (Thread.currentThread().threadGroup == SidedThreadGroups.SERVER || (level != null && level.isThundering)) {
 			return true;
-		}else {
+		} else {
 			return super.isFoil(pStack);
 		}
 	}
@@ -148,11 +148,11 @@ private Item whetherIndicator = ITEM.register("weather_indicator", () -> new Ite
 
 public static void setItemOverride(FMLClientSetupEvent event) {
     ItemProperties.register(whetherIndicator.get(), new ResourceLocation(Cobalt.MOD_ID, "weather"),
-        (ItemStack itemStack, __, LivingEntity livingEntity, int seed) -> {
+        (itemStack, __, livingEntity, seed) -> {
 	        final var clientLevel = Minecraft.getInstance().level;
 	        if (clientLevel == null){
 	            return 0f;
-	        }else{
+	        } else {
 	            if (clientLevel.isRaining) {
 	                return 1f;
 	            } else if (clientLevel.dayTime < 11000) {
@@ -302,9 +302,9 @@ val blueChalk = ITEM.register("blue_chalk") { Item(Item.Properties().tab(creativ
 ```
 
 ```java-s
-RegistryObject<Item> redChalk = ITEM.register("red_chalk", () -> new Item(Item.Properties().tab(creativeTab)));
-RegistryObject<Item> greenChalk = ITEM.register("green_chalk", () -> new Item(Item.Properties().tab(creativeTab)));
-RegistryObject<Item> blueChalk = ITEM.register("blue_chalk", () -> new Item(Item.Properties().tab(creativeTab)));
+RegistryObject<Item> redChalk = ITEM.register("red_chalk", () -> new Item(new Item.Properties().tab(creativeTab)));
+RegistryObject<Item> greenChalk = ITEM.register("green_chalk", () -> new Item(new Item.Properties().tab(creativeTab)));
+RegistryObject<Item> blueChalk = ITEM.register("blue_chalk", () -> new Item(new Item.Properties().tab(creativeTab)));
 ```
 
 #### **ItemColor register**
@@ -325,13 +325,15 @@ fun registerColorHandle(event: ColorHandlerEvent.Item) {
 
 ```java-s
 public static void registerColorHandle(ColorHandlerEvent.Item event) {
-    event.itemColors.register((pStack, pTintIndex) ->
-        switch(pStack.item){
-            case redChalk.get() -> MaterialColor.COLOR_RED;
-            case greenChalk.get() -> MaterialColor.COLOR_GREEN;
-            case blueChalk.get() -> MaterialColor.COLOR_BLUE;
-            default -> MaterialColor.COLOR_BLACK;
-        }.col, redChalk.get(), greenChalk.get(), blueChalk.get());
+    event.itemColors.register((pStack, pTintIndex) -> {
+        if(pStack.item == redChalk.get()) 
+            return MaterialColor.COLOR_RED.col;
+        if(pStack.item == greenChalk.get()) 
+            return MaterialColor.COLOR_GREEN.col;
+        if(pStack.item == blueChalk.get()) 
+            return MaterialColor.COLOR_BLUE.col;
+        return MaterialColor.COLOR_BLACK.col;
+    }, redChalk.get(), greenChalk.get(), blueChalk.get());
 }
 ```
 
@@ -467,7 +469,7 @@ class HexArgumentType(private val minimum: Int = Int.MIN_VALUE, private val maxi
     ArgumentType<Int> {
 
     companion object {
-        private val example = mutableListOf("0xffffff", "0xff00ff")
+        private val example = listOf("0xffffff", "0xff00ff")
         private val hexSynaxErrorType = DynamicCommandExceptionType { value ->
             LiteralMessage("hex number must begin witch 0x instead of $value")
         }
@@ -640,7 +642,7 @@ public void setBakedModel(ModelBakeEvent event){
     final var modelResourceLocation = new ModelResourceLocation(AllRegisters.drawableChalk.get().registryName,"inventory");
     final var model = event.getModelRegistry().get(modelResourceLocation);
     event.modelRegistry.put(modelResourceLocation , new BakedModelWrapper<BakedModel>(model) {
-        @Override public ItemOverrides getOverrides() { return new OverrideItemOverrides();)
+        @Override public ItemOverrides getOverrides() { return new OverrideItemOverrides();}
     });
 }
 ```
@@ -774,8 +776,8 @@ class OverrideWrappedBakedModel extends BakedModelWrapper<BakedModel> {
     private final OverrideItemOverrides overrides;
     
     public OverrideWrappedBakedModel(originalModel BakedModel, OverrideItemOverrides overrides){
-        this.overrides = overrides;
         super(originModel);
+        this.overrides = overrides;
     }
     
     @override
@@ -787,10 +789,6 @@ class OverrideWrappedBakedModel extends BakedModelWrapper<BakedModel> {
 
 ```kotlin-s
 class OverrideItemOverrides : ItemOverrides() {
-
-    companion object {
-        val cache = mutableListOf<BakedModel>()
-    }
 
     override fun resolve(
         pModel: BakedModel,
@@ -815,10 +813,8 @@ class OverrideItemOverrides : ItemOverrides() {
 ```java-s
 class OverrideItemOverrides extends ItemOverrides {
 
-	public static List<BakedModel> cache = List.of();
-
     @Override
-    public BakedModel resolve(BakedModel pModel,ItemStack pStack,ClientLevel pLevel,LivingEntity pEntity,Int pSeed) {
+    public BakedModel resolve(BakedModel pModel,ItemStack pStack,ClientLevel pLevel,LivingEntity pEntity,int pSeed) {
         final var item = (DrawableChalk) pStack.item; 
         final var blockState = item.getBlockState(pStack);
         if (blockState != null){
@@ -910,7 +906,7 @@ override fun initializeClient(consumer: Consumer<IItemRenderProperties>) {
 ```java-s
 @Override
 public void initializeClient(Consumer<IItemRenderProperties> consumer) {
-    consumer.accept(new IItemRenderProperties {
+    consumer.accept(new IItemRenderProperties() {
         @Override
         public BlockEntityWithoutLevelRenderer getItemStackRenderer() {
             return new BlockEntityWithoutLevelRenderer(
