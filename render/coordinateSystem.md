@@ -3,7 +3,7 @@
 ---
 
 >[!note]
-> 本章所阐述的坐标系统，指代再渲染时使用的坐标系统  
+> 本章所阐述的坐标系统，指代在渲染时使用的坐标系统  
 > 并非为用于实体方位的坐标系  
 
 ## Review
@@ -20,7 +20,7 @@
 3. `View Space(视口空间)`,摄像机所观察到的空间
 4. `Clip Space(剪切空间)`,具有透视投影/正交投影性质的空间
 5. `Normalized Device Coordinate(NDC Space)`,各分量除以w,所有坐标都处于-1到1内，左下为[-1，1],右上为[1,1]
-6. `Screen Space`,`glViewPort`所定义的空间
+6. `Screen Space`,`glViewPort`所定义的空间  
 
 箭头上标注的矩阵即为将上一个空间变换到下一个空间的矩阵
 
@@ -29,14 +29,14 @@
 > `Vertex Shader`的内置变量`gl_Position`输出的为`Clip Space`  
 > `Fragment Shader`的内置变量`gl_FragCoord`较为复杂,首先来自`NDC空间`  
 > xy分量受到[Fragment shader coordinate origin](https://www.khronos.org/opengl/wiki/Layout_Qualifier_(GLSL)#Fragment_shader_coordinate_origin)和glViewPort的影响  
-> z分量受到`glDepthRang`e影响  
+> z分量受到`glDepthRange`影响  
 > w分量为`Clip Space` w分量的倒数  
 
 对于mc游戏内使用的坐标，我们在本文章中称之为方块坐标  
 
 ## In World
 
-为了讲坐标映射到`Clip Space`,mc仍采用上述流程，只不过模型矩阵与视图矩阵合并为同一个矩阵，后文称之为`MV矩阵`    
+为了将坐标映射到`Clip Space`,mc仍采用上述流程，只不过模型矩阵与视图矩阵合并为同一个矩阵，后文称之为`MV矩阵`    
 对于投影矩阵，mc采用的是`透视投影矩阵`，可以在`GameRender#getProjectionMatrix`找到具体代码  
 且该矩阵始终不为单位矩阵  
 
@@ -69,8 +69,8 @@ void main() {
 }
 ```
 
-`Postion`为BlockPosition & 0xFF,即坐标的第四位,即表示自身在chunk的位置  
-`ChunkOffset`是批量渲染区块时一个特有的uniform变量,其值为`RenderChunkDispatcher$RenderChunk.origin-camPos`  
+`Postion`为BlockPosition & 0xFF,即坐标数据的后四位,即表示自身相对于自身chunk原点所在的位置  
+`ChunkOffset`是批量渲染区块时一个特有的uniform变量,其值为`RenderChunkDispatcher$RenderChunk.origin - camPos`  
 每个`RenderChunkDispatcher$RenderChunk`代表一个16x16x16范围  
 根据上文所述的以摄像机中心为原点,在此我们可以通过简单的`pos + camPos`得到该顶点的方块坐标  
 `Camera.getPosition()`可直接拿到摄像机的方块坐标  
@@ -93,9 +93,9 @@ poseStack.translate(blockPos.x,blockPos.y,blockPos.z);
 
 ## GUI
 
-在gui体系内,mc的渲染坐标系便较为统一,再次我们还会介绍`SDF`在此的使用并让其支持原版的`PoseStack`系统  
+在gui体系内,mc的渲染坐标系便较为统一,在此我们还会介绍`SDF`在此的使用并让其支持原版的`PoseStack`系统  
 
-首先我们要介绍的是mc引入的一个叫做GuiScale的变量，可以通过`Minecraft.getInstance().window.guiScale`拿到  
+首先我们要介绍的是mc引入的一个叫做`GuiScale`的变量，可以通过`Minecraft.getInstance().window.guiScale`拿到  
 同时在window内有三对字段储存了窗口的宽高
 
 | Name                 | Meaning                          |
@@ -112,20 +112,20 @@ poseStack.translate(blockPos.x,blockPos.y,blockPos.z);
 | getGuiScaledHeight() | length / guiScale                |
 
 对于gui内渲染，mc重新定义了一个空间，在本文，我们称之为`gui空间`  
-该空间以坐上角为原点，向右为x轴正方向，向下为y轴正方向，即左上角为(0,0),右下角为(guiScaledWidth,guiScaledHeight)  
+该空间以左上角为原点，向右为x轴正方向，向下为y轴正方向，即左上角为(0,0),右下角为(guiScaledWidth,guiScaledHeight)  
 同时，我们为了讲述方便，定义一个`未规范化屏幕空间`，左上角为(0,0),右下角为(actual width,actual height)  
 并且定义`屏幕空间`为左下角(-1,-1),右上角(1,1),中心点为(0,0)  
 
-在gui内，mc使用的投影矩阵为正投影矩阵，定义空间与gui空间一致，且近平面为1000，远平面为3000  
-在forge环境下提供了guiLayers,每有一层的guiLayers，在3000的基础上增加2000
+在gui内，mc使用的投影矩阵为正交投影矩阵，定义空间与gui空间一致，且近平面为1000，远平面为3000  
+在forge环境下，有提供`guiLayers`,每有一层的guiLayers，在3000的基础上增加2000
 
 原版定义的所有部件，使用的所有空间都为gui空间，包括x,y,width,height  
-在部件内拿到鼠标坐标空间也是  
+在部件内拿到鼠标对于的坐标空间也是gui空间  
 可以在GameRender#render内找到类似代码  
 
 ```java
-var mouseX = (mouseHandler.xpos() * getWindow().getGuiScaledWidth() / getWindow().getScreenWidth());
-var mouseY = (mouseHandler.ypos() * getWindow().getGuiScaledHeight() / getWindow().getScreenHeight());
+var mouseX = (mouseHandler.xpos() * getWindow().getGuiScaledWidth() / getWindow().getScreenWidth());  
+var mouseY = (mouseHandler.ypos() * getWindow().getGuiScaledHeight() / getWindow().getScreenHeight());  
 ```
 
 如果想在gui中启用`scissor test(剪切测试)`，请通过`guiScale`进行修正，类似这样  
@@ -139,7 +139,7 @@ RenderSystem.enableScissor(
 
 ## SDF
 
-可以直接传输二位的屏幕坐标空间,给出如下screen.fsh  
+可以直接传输二维的屏幕坐标空间,给出如下screen.fsh  
 可以通过修改是否定义宏`SUPPORT_POSE_STACK`来开关对其支持
 ```glsl
 #version 150
@@ -171,3 +171,21 @@ void main() {
     #endif
 }
 ```
+仅需传输四个顶点坐标即可,类似于
+```java
+var builder = Tesselator.getInstance().getBuilder();
+
+builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+builder.vertex(-1.0, 1.0, 0.0).endVertex();
+builder.vertex(-1.0, -1.0, 0.0).endVertex();
+builder.vertex(1.0, -1.0, 0.0).endVertex();
+builder.vertex(1.0, 1.0, 0.0).endVertex();
+builder.end();
+
+BufferUploader._endInternal(builder);//for <119 
+BufferUploader.draw(bufferbuilder.end()); for >= 119 //changed at 22w16a
+```
+
+## Utility
+
+- [实用顶点处理函数](https://github.com/onnowhere/core_shaders/blob/master/.shader_utils/vsh_util.glsl)
