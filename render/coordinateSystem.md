@@ -13,7 +13,7 @@
 * [LearnOpenGL](https://learnopengl.com/Getting-started/Coordinate-Systems)
 * [LearnOpenGLCN](https://learnopengl-cn.github.io/01%20Getting%20started/08%20Coordinate%20Systems/)  
 
-![img.png](../picture/coordinateSystem/coordinateSystem.png)
+![coordinateSystem.png](../picture/coordinateSystem/coordinateSystem.png)
 
 1. `Local Space(本地/局部空间)`,可理解为建模时使用的坐标
 2. `World Space(世界空间)`,在游戏内，一个模型可出现在多处，此时采用的坐标
