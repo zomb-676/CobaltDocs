@@ -128,6 +128,15 @@ var mouseX = (mouseHandler.xpos() * getWindow().getGuiScaledWidth() / getWindow(
 var mouseY = (mouseHandler.ypos() * getWindow().getGuiScaledHeight() / getWindow().getScreenHeight());
 ```
 
+如果想在gui中启用`scissor test(剪切测试)`，请通过`guiScale`进行修正，类似这样  
+```java
+RenderSystem.enableScissor(
+                (int) (x * scale),
+                (int) (minecraft.getWindow().getHeight() - (y + height) * scale),
+                (int) (width * scale),
+                (int) (height * scale));
+```
+
 ## SDF
 
 可以直接传输二位的屏幕坐标空间,给出如下screen.fsh  
