@@ -62,3 +62,6 @@ forge为item添加了如下方法`default String getArmorTexture(ItemStack stack
 并且手动设置纹理大小,则在复写forge添加的返回的方法中,返回`TextureAtlasHolder`持有的`TextureAtlas`对象的`ResourceLocation`即可  
 
 **注意`TextureAtlasHolder#getSprite`会修改你在`getResourcesToLoad`中提交的的委托的纹理路径**
+
+Example:  
+![animated_model](../picture/textureAtlas/animated_model.gif)
