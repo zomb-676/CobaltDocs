@@ -100,10 +100,10 @@ poseStack.translate(blockPos.x,blockPos.y,blockPos.z);
 
 | Name                 | Meaning                          |
 |----------------------|----------------------------------|
-| width                | actual length, measured by pixel |
-| height               | actual length, measured by pixel |
-| framebufferWidth     | actual length, measured by pixel |
-| framebufferHeight    | actual length, measured by pixel |
+| width                | actual length, measured in pixel |
+| height               | actual length, measured in pixel |
+| framebufferWidth     | actual length, measured in pixel |
+| framebufferHeight    | actual length, measured in pixel |
 | guiScaledWidth       | length / guiScale                |
 | guiScaledHeight      | length / guiScale                |
 | getWidth()           | actual length                    |
