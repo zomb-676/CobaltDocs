@@ -183,8 +183,11 @@ builder.vertex(1.0, 1.0, 0.0).endVertex();
 builder.end();
 
 BufferUploader._endInternal(builder);//for <119 
-BufferUploader.draw(bufferbuilder.end()); for >= 119 //changed at 22w16a
+BufferUploader.draw(bufferbuilder.end());//for >= 119 //changed at 22w16a
 ```
+
+Example:
+![sdf](../picture/coordinateSystem/SDF_show.gif)
 
 ## Utility
 
