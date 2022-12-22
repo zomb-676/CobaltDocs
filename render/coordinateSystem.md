@@ -139,7 +139,7 @@ RenderSystem.enableScissor(
 
 ## SDF
 
-可以直接传输二维的屏幕坐标空间,给出如下screen.fsh  
+可以直接传输二维的屏幕坐标空间,给出如下screen.vsh  
 可以通过修改是否定义宏`SUPPORT_POSE_STACK`来开关对其支持
 ```glsl
 #version 150
