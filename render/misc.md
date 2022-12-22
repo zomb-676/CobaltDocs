@@ -41,3 +41,11 @@ public void setBlockDirty(BlockPos pPos, BlockState pOldState, BlockState pNewSt
 
 内部有一个`Deque<PoseStack.Pose>`用于存储存储数据,`push`压入,`pop`弹出,`last`拿到队列顶部元素     
 每个`PoseStack.Pose`,内有`Matrix4f`的`pose`,和`Matrix3f`的`normal`  
+
+## Selected Text
+
+glLogicOp使用GL_OR_REVERSE
+
+## Fog in liquid
+
+直接使用`EntityViewRenderEvent.FogColors`

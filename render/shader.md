@@ -79,7 +79,7 @@ public BufferBuilder progress(float progress){
 
 # Example
 
-[扩展顶点属性](https://github.com/USS-Shenzhou/MadParticle/blob/master/src/main/java/cn/ussshenzhou/madparticle/particle/MadParticleShader.java)  
+[逐顶点版本的ColorModulator](https://github.com/USS-Shenzhou/MadParticle/blob/master/src/main/java/cn/ussshenzhou/madparticle/particle/MadParticleShader.java)  
 [消融效果实现](https://github.com/Low-Drag-MC/ShimmerFire/blob/main/src/main/java/com/lowdragmc/shimmerfire/client/renderer/MimicDissolveRender.java)  
 
 最终效果:
