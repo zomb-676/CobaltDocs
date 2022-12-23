@@ -49,3 +49,17 @@ glLogicOp使用GL_OR_REVERSE
 ## Fog in liquid
 
 直接使用`EntityViewRenderEvent.FogColors`
+
+## RenderShape
+
+枚举类
+
+| name                 | usage                   |
+|----------------------|-------------------------|
+| INVISIBLE            | skip render             |
+| ENTITYBLOCK_ANIMATED | skip batch chunk render |
+| MODEL                | render all              |
+
+> [!note]
+> `BaseEntityBlock`覆写后方块默认从MODE变为ENTITYBLOCK_ANIMATED  
+> 若继承自此类且不需要跳过批量区块渲染则需要手动覆写,参考附魔台  
