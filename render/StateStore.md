@@ -6,7 +6,7 @@
 可惜直到OpenGL4.5才正式进入规范,而mc的要求仅式OpenGL3.2  
 如果是mod是Sodium/Rubidium的附属,则可以无视这点,此mod以要求OpenGL4.5,参见[此](https://github.com/CaffeineMC/sodium-fabric/commit/01321b0082cea08316b74eff374227d12bb50645)  
 
-因此,为了减少对于GUI的调用,在cpu侧会对当前状态进行缓存,并在每次尝试调用前检查缓存以提高性能。
+因此,为了减少GUP-CPU通信及状态切换的开销,在cpu侧会对当前状态进行缓存,并在每次尝试调用前检查缓存以提高性能。
 
 minecraft对此的实现有如下
 
