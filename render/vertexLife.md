@@ -41,7 +41,7 @@ class BufferBuilder {
   + building() boolean
   + begin(Mode, VertexFormat) void
   + getSortState() SortState
-  + popNextBuffer() Pair~DrawState, ByteBuffer~
+  + popNextBuffer() Pair~DrawStateAndByteBuffer~
   + clear() void
   + discard() void
   + end() void
@@ -86,6 +86,8 @@ BufferVertexConsumer  -->  VertexConsumer
 DefaultedVertexConsumer  ..>  VertexConsumer 
 
 ```
+注意 popNextBuffer()的返回值应是Pair<DrawState, ByteBuffer>,上文的错误是由于mermaid不支持所致  
+在此[issue](https://github.com/mermaid-js/mermaid/issues/3287#issuecomment-1468536297)被解决后即可改善  
 
 可以发现位于继承树顶层的`VertexConsumer`定义了存放了不同功能的顶点数据  
 `BufferVertexConsumer`则具体定义了将具体类型的数据存放  
